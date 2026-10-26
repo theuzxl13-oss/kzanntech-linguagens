@@ -1,5 +1,72 @@
 # Configuração e implantação
 
+## Cloudflare Workers (passo a passo)
+
+O KeyLingo roda no Cloudflare Workers pelo adaptador oficial [OpenNext](https://opennext.js.org/cloudflare). O banco fica no Supabase (PostgreSQL) e o Cloudflare se conecta a ele pelo **Hyperdrive**, que mantém um pool de conexões perto do Worker. (O "Cloudflare Pages" clássico não é usado: para Next.js com servidor, o Cloudflare usa Workers.)
+
+> **Plano necessário:** use o **Workers Paid (US$ 5/mês)**. O plano gratuito limita cada requisição a 10 ms de CPU; só o hash seguro de senha (scrypt) leva ~50 ms, e páginas renderizadas no servidor também passam disso. O tamanho do app (~2 MiB compactado) cabe em ambos os planos.
+
+O que já foi verificado: o build do OpenNext e os 14 testes E2E rodando no runtime `workerd` local (`wrangler dev`) com Hyperdrive apontando para um PostgreSQL local. O deploy na sua conta e o Hyperdrive real ainda não foram executados.
+
+### 1. Banco no Supabase
+
+1. Crie um projeto no supabase.com, de preferência na região **South America (São Paulo)**.
+2. Copie a *connection string* direta (porta 5432) em **Project Settings → Database**.
+3. No seu computador, crie as tabelas e o primeiro administrador:
+   ```bash
+   DATABASE_URL="postgresql://..." DATABASE_SSL=true npm run db:migrate
+   DATABASE_URL="postgresql://..." DATABASE_SSL=true ADMIN_EMAIL=voce@exemplo.com ADMIN_PASSWORD='SenhaForte123' npm run db:seed
+   ```
+
+### 2. Conta e Hyperdrive no Cloudflare
+
+```bash
+npx wrangler login
+npx wrangler hyperdrive create keylingo-db --connection-string="postgresql://...(a mesma do Supabase)"
+```
+Cole o `id` retornado em `wrangler.jsonc` (campo `hyperdrive[0].id`).
+
+### 3. E-mail (Resend)
+
+O Cloudflare não permite SMTP pelo `nodemailer`; use a API do Resend (plano gratuito). Crie a chave em resend.com e, para enviar a qualquer destinatário, verifique um domínio seu e ajuste `EMAIL_FROM` em `wrangler.jsonc`.
+
+### 4. Variáveis e segredos
+
+Em `wrangler.jsonc` (seção `vars`), ajuste `APP_URL` para o endereço final (ex.: `https://keylingo.SEU-SUBDOMINIO.workers.dev` ou seu domínio). Depois, cadastre os segredos:
+
+```bash
+npx wrangler secret put AUTH_SECRET        # gere com: openssl rand -hex 32
+npx wrangler secret put RESEND_API_KEY
+# opcional, para avaliação de pronúncia real:
+npx wrangler secret put AZURE_SPEECH_KEY   # e defina SPEECH_PROVIDER=azure e AZURE_SPEECH_REGION em vars
+```
+
+### 5. Publicar
+
+```bash
+npm run cf:deploy
+```
+O comando mostra a URL publicada. Confira `GET /api/health` (deve responder `{"ok":true,"db":"ok"}`) e faça um cadastro de teste.
+
+Atualizações: rode `npm run db:migrate` (com a `DATABASE_URL` do Supabase) antes de `npm run cf:deploy` quando houver novas migrações. Também é possível conectar o repositório no painel do Cloudflare (Workers Builds) com o comando de build `npx opennextjs-cloudflare build` e o de deploy `npx opennextjs-cloudflare deploy`.
+
+### Preview local no runtime do Cloudflare
+
+```bash
+cp .dev.vars.example .dev.vars   # ajuste AUTH_SECRET
+npm run cf:preview               # http://localhost:8787, usa o banco de "localConnectionString" no wrangler.jsonc
+```
+
+### Diferenças técnicas no Cloudflare
+
+- Conexões com o banco não podem ser compartilhadas entre requisições: o código (`src/lib/server/db.ts`) reaproveita uma conexão por requisição e abre uma separada para cada transação; o Hyperdrive faz o pooling.
+- E-mail via API HTTP (Resend) em vez de SMTP.
+- `pg-cloudflare` é incluído explicitamente no build (`outputFileTracingIncludes` em `next.config.ts`).
+
+---
+
+## Outras hospedagens (Node.js)
+
 ## 1. Banco de dados no Supabase
 
 1. Crie um projeto em supabase.com.
@@ -39,7 +106,7 @@ Implemente `SpeechProvider` (`src/lib/server/speech/types.ts`) e registre o adap
 
 ## 3. E-mail
 
-`EMAIL_TRANSPORT=smtp`, `SMTP_URL=smtps://usuario:senha@host:465`, `EMAIL_FROM="KeyLingo <no-reply@seudominio>"`. Sem SMTP em produção, o transporte padrão é `disabled` e a interface informa que o envio está indisponível.
+`EMAIL_TRANSPORT=resend` + `RESEND_API_KEY` (funciona em qualquer hospedagem), ou `EMAIL_TRANSPORT=smtp`, `SMTP_URL=smtps://usuario:senha@host:465`, `EMAIL_FROM="KeyLingo <no-reply@seudominio>"`. Sem SMTP em produção, o transporte padrão é `disabled` e a interface informa que o envio está indisponível.
 
 ## 4. Implantação
 

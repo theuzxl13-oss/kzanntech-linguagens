@@ -1,7 +1,7 @@
 import { challengeProgress, dailyChallenges } from "../domain/challenges";
 import { addDays, localDate, startOfIsoWeekUtc } from "../domain/dates";
 import { levelProgress } from "../domain/scoring";
-import { query, queryOne, getPool } from "./db";
+import { db, query, queryOne } from "./db";
 import { dayActivity } from "./game/finish";
 import { getUserStandings } from "./rankings";
 import type { CurrentUser } from "./session-store";
@@ -80,7 +80,7 @@ export async function getDashboard(user: CurrentUser) {
     [user.id],
   );
 
-  const activity = await dayActivity(getPool(), user.id, tz, today);
+  const activity = await dayActivity(db, user.id, tz, today);
   const completed = new Set(
     (await query<{ code: string }>(`select code from challenge_completions where user_id = $1 and challenge_date = $2`, [user.id, today])).map(
       (r) => r.code,

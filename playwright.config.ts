@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
+// Com E2E_BASE_URL, os testes rodam contra um servidor já iniciado (ex.: o preview do Cloudflare).
+const EXTERNAL = process.env.E2E_BASE_URL;
 export const E2E_DATABASE_URL = process.env.E2E_DATABASE_URL ?? "postgresql://keylingo:keylingo@localhost:5432/keylingo_e2e";
 
 export default defineConfig({
@@ -12,7 +14,7 @@ export default defineConfig({
   timeout: 90_000,
   reporter: [["list"]],
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    baseURL: EXTERNAL ?? `http://localhost:${PORT}`,
     locale: "pt-BR",
     timezoneId: "America/Sao_Paulo",
     trace: "retain-on-failure",
@@ -22,7 +24,9 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] }, testIgnore: /mobile\.spec\.ts/ },
     { name: "mobile", use: { ...devices["Pixel 7"] }, testMatch: /mobile\.spec\.ts/ },
   ],
-  webServer: {
+  webServer: EXTERNAL
+    ? undefined
+    : {
     // Testa o build de produção (execute `npm run build` antes)
     command: `npx next start -p ${PORT}`,
     url: `http://localhost:${PORT}/api/health`,

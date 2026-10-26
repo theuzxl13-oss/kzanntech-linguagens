@@ -14,8 +14,9 @@ export const config = {
     }
     return s;
   },
-  get emailTransport(): "smtp" | "log" | "disabled" {
+  get emailTransport(): "smtp" | "resend" | "log" | "disabled" {
     const t = process.env.EMAIL_TRANSPORT;
+    if (t === "resend") return process.env.RESEND_API_KEY ? "resend" : "disabled";
     if (t === "smtp" || t === "log" || t === "disabled") return t;
     return process.env.NODE_ENV === "production" ? "disabled" : "log";
   },

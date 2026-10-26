@@ -20,6 +20,7 @@ Plataforma web gamificada para aprender idiomas **digitando** e **falando**. Ing
 
 - **Next.js 16** (App Router, React 19, TypeScript) + **Tailwind CSS 4**
 - **PostgreSQL** via `pg`, migrações SQL versionadas (`db/migrations`) — funciona em PostgreSQL local, Supabase, Neon, RDS etc.
+- Implantação no **Cloudflare Workers** (adaptador OpenNext + Hyperdrive) ou em qualquer servidor Node.js
 - Autenticação própria no servidor (scrypt + sessões em cookie `httpOnly`), validação com **Zod**
 - Voz: **Azure AI Speech** (TTS + STT + avaliação de pronúncia) no servidor, com fallback para a Web Speech API do navegador
 - Testes: **Vitest** (unitários e integração com Postgres real) e **Playwright** (E2E desktop e celular)
@@ -53,7 +54,9 @@ Em desenvolvimento, `EMAIL_TRANSPORT=log` imprime os e-mails (links de verifica�
 | `npm run db:seed` | Catálogo (idempotente; não sobrescreve edições do admin) e admin opcional |
 | `npm run test:unit` | Testes unitários (domínio, pontuação, correção, voz, adaptador Azure) |
 | `npm run test:integration` | Integração com PostgreSQL real (`TEST_DATABASE_URL`, padrão `keylingo_test`; o schema é recriado) |
-| `npm run test:e2e` | E2E com Playwright contra o build de produção (`E2E_DATABASE_URL`, padrão `keylingo_e2e`). Rode `npm run build` antes |
+| `npm run test:e2e` | E2E com Playwright contra o build de produção (`E2E_DATABASE_URL`, padrão `keylingo_e2e`). Rode `npm run build` antes. Com `E2E_BASE_URL`, roda contra um servidor já iniciado (ex.: preview do Cloudflare) |
+| `npm run cf:preview` | Build para o Cloudflare e preview local no runtime real dos Workers (`workerd`) |
+| `npm run cf:deploy` | Build e publicação no Cloudflare Workers |
 
 ## Estrutura
 
@@ -78,11 +81,11 @@ docs/                  Arquitetura, pontuação, implantação
 
 - [Arquitetura, modelo de dados e segurança](docs/ARCHITECTURE.md)
 - [Fórmulas de pontuação, XP, rankings e ligas](docs/SCORING.md)
-- [Supabase, serviços de áudio, e-mail, implantação e testes](docs/DEPLOY.md)
+- [Cloudflare (passo a passo), Supabase, serviços de áudio, e-mail e testes](docs/DEPLOY.md)
 
 ## Testes
 
-Última execução: **44 unitários, 28 de integração (PostgreSQL 16) e 14 E2E (Chromium desktop + Pixel 7, contra o build de produção) — todos passando.**
+Última execução: **44 unitários, 28 de integração (PostgreSQL 16) e 14 E2E (Chromium desktop + Pixel 7) — todos passando.** Os 14 E2E passam tanto no build Node.js (`next start`) quanto no runtime do Cloudflare Workers (`wrangler dev`, com Hyperdrive apontando para PostgreSQL local).
 
 Cobrem: cadastro/login/recuperação/verificação, escolha de idioma, os três formatos de digitação, voz (provedor simulado no servidor e reconhecimento do navegador simulado), microfone negado, cálculo de pontuação, XP decrescente, níveis, rankings individuais e geral, temporadas, segurança de rotas, CSRF, rate limit, envio duplicado, manipulação de pontuação, sessão interrompida, resposta vazia, áudio indisponível e responsividade.
 
@@ -92,7 +95,8 @@ Cobrem: cadastro/login/recuperação/verificação, escolha de idioma, os três 
 - Sem chave Azure, a voz usa a Web Speech API do navegador (Chrome, Edge, Safari; o Firefox não oferece). A nota é **aproximada** (palavras reconhecidas), as sessões de voz não entram no ranking por padrão e o áudio de referência depende das vozes do dispositivo. A escuta competitiva no Jogo de Digitar exige áudio do servidor.
 - **O conteúdo inicial não é verificado:** 71 conceitos × 5 idiomas (355 itens) foram redigidos com apoio de IA e estão marcados como *pendentes de revisão*. Precisam ser revisados por professores/nativos no painel admin. Não há gravações humanas; o áudio é sintético. Faltam frases de exemplo na maioria dos itens.
 - Política de Privacidade e Termos são modelos que exigem revisão jurídica e os dados do controlador.
-- Login social não foi implementado. O e-mail exige SMTP configurado em produção.
+- Login social não foi implementado. O e-mail exige Resend (Cloudflare) ou SMTP (Node.js) configurado em produção.
+- **Cloudflare:** o hash de senha (scrypt) usa ~50 ms de CPU e o plano gratuito dos Workers permite 10 ms por requisição; use o plano **Workers Paid**. O deploy real no Cloudflare não foi executado (precisa da sua conta); foi validado no runtime local `workerd`.
 - O rate limit usa o banco (janela fixa) e o IP de `X-Forwarded-For`: configure o proxy/CDN para sobrescrever esse cabeçalho.
 - A CSP usa `'unsafe-inline'` para scripts (padrão do Next sem nonce).
 - Não há limpeza agendada de `rate_limits`, `app_events` e tokens expirados além da limpeza oportunista; agende uma tarefa (ver DEPLOY.md).

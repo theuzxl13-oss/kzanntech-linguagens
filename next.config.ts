@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -30,7 +31,8 @@ const nextConfig: NextConfig = {
   // Cache Components desativado de propósito: quase todas as páginas são autenticadas e
   // dependem do usuário da requisição (ver docs/ARCHITECTURE.md).
   poweredByHeader: false,
-  serverExternalPackages: ["pg"],
+  // O driver pg usa o pg-cloudflare (sockets TCP do Workers); o rastreamento padrão só copia a versão vazia para Node.
+  outputFileTracingIncludes: { "/*": ["./node_modules/pg-cloudflare/**/*"] },
   turbopack: {
     rules: {
       "*.css": {
@@ -45,3 +47,6 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// Disponibiliza os bindings do Cloudflare (ex.: HYPERDRIVE) no `next dev`, se configurados.
+initOpenNextCloudflareForDev();

@@ -1,0 +1,5 @@
+# Variáveis para o preview local do Cloudflare (npm run cf:preview). Copie para .dev.vars.
+APP_URL=http://localhost:8787
+AUTH_SECRET=troque-por-um-valor-aleatorio-de-64-caracteres
+EMAIL_TRANSPORT=log
+SPEECH_PROVIDER=none
