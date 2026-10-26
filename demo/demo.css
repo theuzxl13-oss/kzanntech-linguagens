@@ -1,0 +1,4 @@
+/* Mesmo design system do app (globals.css), com as fontes de classes da demo. */
+@import "../src/app/globals.css";
+@source "../src";
+@source "./";

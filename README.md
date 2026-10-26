@@ -4,6 +4,17 @@ Plataforma web gamificada para aprender idiomas **digitando** e **falando**. Ing
 
 > **Estado atual:** aplicação funcional, testada de ponta a ponta localmente (PostgreSQL real + build de produção). **Ainda não está pronta para produção pública** — veja [Limitações conhecidas](#limitações-conhecidas).
 
+## Demonstração navegável (GitHub Pages)
+
+Uma versão de **demonstração** roda inteira no navegador, sem servidor nem banco: **https://theuzxl13-oss.github.io/kzanntech-linguagens/** (disponível depois de ativar o Pages, veja abaixo).
+
+- Usa as mesmas telas, regras de correção, pontuação, XP e conteúdo do app real.
+- O progresso fica salvo só no navegador (`localStorage`); os rankings usam jogadores fictícios marcados como DEMO.
+- Não tem: contas reais, e-mail, painel administrativo, avaliação de pronúncia no servidor nem proteções anti-fraude (tudo roda no navegador).
+- Voz: usa o reconhecimento de fala do navegador (Chrome, Edge ou Safari); o áudio de referência usa as vozes instaladas no dispositivo.
+
+Para publicar: **Settings → Pages → Build and deployment → Source: GitHub Actions** (uma vez). O workflow `.github/workflows/demo-pages.yml` gera e publica a demo a cada push. Para gerar localmente: `npm run demo:build` (saída em `demo/dist`).
+
 ## Funcionalidades
 
 | Área | O que existe |

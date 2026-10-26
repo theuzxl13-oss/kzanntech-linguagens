@@ -50,3 +50,6 @@ next-env.d.ts
 /.open-next/
 /.wrangler/
 .dev.vars
+
+# Demonstração estática gerada
+/demo/dist/

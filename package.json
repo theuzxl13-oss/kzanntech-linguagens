@@ -19,7 +19,8 @@
     "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
+    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "demo:build": "node scripts/build-demo.mjs"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.13",
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
+    "@tailwindcss/cli": "^4.3.3",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^22.20.5",
     "@types/nodemailer": "^8.0.2",
@@ -40,6 +42,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^18.0.9",
+    "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
     "tailwindcss": "^4",
