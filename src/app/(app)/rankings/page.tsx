@@ -134,7 +134,7 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
           Jogue uma sessão <strong>competitiva</strong> para aparecer aqui.
         </EmptyState>
       ) : (
-        <Card className="overflow-hidden p-0">
+        <Card className="overflow-x-auto p-0">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">
               Ranking {BOARDS.find((b) => b[0] === q.board)?.[1]} — {PERIODS.find((p) => p[0] === q.period)?.[1]}
@@ -160,8 +160,8 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
             <tbody className="divide-y divide-slate-100">
               {[...ranking.rows, ...(ranking.viewer && !viewerInTop ? [ranking.viewer] : [])].map((r, i) => (
                 <tr key={r.userId + i} className={cn(r.userId === user.id && "bg-brand-50 font-semibold")} aria-current={r.userId === user.id ? "true" : undefined}>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                  <td className="px-3 py-3 sm:px-4">
+                    <div className="flex items-center gap-1 sm:gap-2">
                       <span className="w-8 font-extrabold">{r.position <= 3 ? ["🥇", "🥈", "🥉"][r.position - 1] : `#${r.position}`}</span>
                       <Change c={r.change} />
                     </div>
@@ -169,7 +169,7 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
                   <td className="px-2 py-3">
                     <div className="flex items-center gap-2">
                       <Avatar avatar={r.avatar} color={r.avatarColor} size="sm" label={`Avatar de ${r.nickname}`} />
-                      <span className="truncate">{r.nickname}</span>
+                      <span className="max-w-[8rem] truncate sm:max-w-none">{r.nickname}</span>
                       {r.userId === user.id && <Badge color="brand">você</Badge>}
                       {r.isDemo && <Badge color="amber">DEMO</Badge>}
                       {r.unverified && (

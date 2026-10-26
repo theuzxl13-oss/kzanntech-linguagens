@@ -7,8 +7,13 @@ import { getDashboard } from "@/lib/server/dashboard";
 
 export const metadata: Metadata = { title: "Painel" };
 
-function greeting() {
-  const h = Number(new Intl.DateTimeFormat("pt-BR", { hour: "numeric", hour12: false, timeZone: "America/Sao_Paulo" }).format(new Date()));
+function greeting(timeZone: string) {
+  let h = 12;
+  try {
+    h = Number(new Intl.DateTimeFormat("pt-BR", { hour: "numeric", hour12: false, timeZone }).format(new Date()));
+  } catch {
+    /* fuso inválido: saudação neutra */
+  }
   return h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
 }
 
@@ -26,7 +31,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       <section className="flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-brand-700 to-brand-900 p-6 text-white shadow-lg sm:flex-row sm:items-center sm:justify-between sm:p-8">
         <div>
           <p className="text-brand-200">
-            {greeting()}, <strong className="text-white">{user.nickname}</strong>!
+            {greeting(user.timezone)}, <strong className="text-white">{user.nickname}</strong>!
           </p>
           <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">
             {d.activeSession ? "Você tem uma sessão em andamento" : lang ? `Vamos praticar ${lang.name_pt.toLowerCase()} hoje?` : "Escolha um idioma para começar"}
@@ -65,7 +70,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           </p>
         </div>
         <Stat icon="🔥" label="Sequência" value={`${d.streak.current} ${d.streak.current === 1 ? "dia" : "dias"}`} hint={d.streak.studiedToday ? "Você já estudou hoje" : `Recorde: ${d.streak.longest}`} />
-        <Stat icon="⏱️" label="Tempo estudado" value={formatDuration(d.studySeconds)} hint={`${d.sessions} sessões`} />
+        <Stat icon="⏱️" label="Tempo estudado" value={formatDuration(d.studySeconds)} hint={`${d.sessions} ${d.sessions === 1 ? "sessão" : "sessões"}`} />
         <Stat icon="🧠" label="Itens aprendidos" value={d.learnedTotal} hint="2+ revisões corretas" />
         <Stat icon="🎯" label="Taxa de acerto" value={formatPercent(d.accuracy)} hint={`Melhor sequência: ${d.bestAnswerStreak}`} />
       </section>
@@ -92,7 +97,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                   <p className="mt-2 text-sm text-slate-700">
                     {stats ? (
                       <>
-                        {stats.sessions} sessões · melhor: <strong>{stats.best}</strong> pts
+                        {stats.sessions} {stats.sessions === 1 ? "sessão" : "sessões"} · melhor: <strong>{stats.best}</strong> pts
                         {standing && (
                           <>
                             {" "}

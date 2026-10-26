@@ -84,8 +84,11 @@ export function speakBrowser(text: string, voice: SpeechSynthesisVoice, rate: nu
   speechSynthesis.speak(u);
 }
 
-/** Reconhecimento único (aproximado). Resolve com até 5 alternativas de transcrição. */
-export function recognizeOnce(locale: string) {
+/**
+ * Reconhecimento único (aproximado). Resolve com até 5 alternativas de transcrição.
+ * Tem tempo limite: alguns navegadores nunca disparam onend/onerror sem rede.
+ */
+export function recognizeOnce(locale: string, timeoutMs = 15_000) {
   const Ctor = getRecognitionCtor();
   if (!Ctor) return { promise: Promise.reject(new Error("unsupported")), stop: () => {} };
   const rec = new Ctor();
@@ -107,10 +110,27 @@ export function recognizeOnce(locale: string) {
       reject(new Error(e.error));
     };
     rec.onend = () => {
-      if (!settled) reject(new Error("no-speech"));
+      if (!settled) {
+        settled = true;
+        reject(new Error("no-speech"));
+      }
     };
+    setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      try {
+        rec.abort();
+      } catch {
+        /* já encerrado */
+      }
+      reject(new Error("no-speech"));
+    }, timeoutMs);
   });
-  rec.start();
+  try {
+    rec.start();
+  } catch {
+    return { promise: Promise.reject(new Error("audio-capture")), stop: () => {} };
+  }
   return { promise, stop: () => rec.stop() };
 }
 
