@@ -39,7 +39,7 @@ export function LanguagePicker({ languages, levels, current }: { languages: Lang
     setError(null);
     try {
       await api("/api/languages/select", { body: { language: lang, level } });
-      router.push("/jogar");
+      router.push("/aprender");
       router.refresh();
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Não foi possível salvar.");
@@ -100,7 +100,10 @@ export function LanguagePicker({ languages, levels, current }: { languages: Lang
           <h2 id="escolha-nivel" className="mb-1 text-lg font-bold">
             2. Qual é o seu nível em {selected.name_pt.toLowerCase()}?
           </h2>
-          <p className="mb-3 text-sm text-slate-600">Níveis baseados no Quadro Europeu Comum de Referência (CEFR). Você pode mudar depois.</p>
+          <p className="mb-3 text-sm text-slate-600">
+            Níveis baseados no Quadro Europeu Comum de Referência (CEFR). <strong>Nunca estudou? Escolha A1</strong> e comece pela Lição 1 da trilha. Você
+            pode mudar depois.
+          </p>
           <div role="radiogroup" aria-labelledby="escolha-nivel" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {levels.slice(0, 4).map((lv) => (
               <button

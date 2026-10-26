@@ -11,6 +11,7 @@ test("experiência no celular: sem rolagem horizontal, navegação inferior e jo
   await noOverflow();
   const bottom = page.getByRole("navigation", { name: "Navegação inferior" });
   await expect(bottom).toBeVisible();
+  await expect(bottom.getByRole("link", { name: /Aprender/ })).toBeVisible();
   await bottom.getByRole("link", { name: /Jogar/ }).click();
   await expect(page).toHaveURL(/\/jogar$/);
   await page.goto("/jogar/digitar");

@@ -22,8 +22,9 @@ export default function Landing() {
               Aprenda idiomas <span className="bg-gradient-to-r from-brand-300 to-teal-300 bg-clip-text text-transparent">jogando</span> com o teclado e com a voz.
             </h1>
             <p className="mt-5 max-w-xl text-lg text-slate-300">
-              Desafios curtos de tradução, escrita, escuta e pronúncia com pontuação justa, XP, conquistas e rankings semanais. Do primeiro
-              &ldquo;hello&rdquo; a conversas profissionais.
+              Uma escola de idiomas que começa do zero: lições guiadas apresentam cada palavra com tradução, áudio e explicação, e depois
+              jogos de digitação e de fala fixam o que você aprendeu — com XP, conquistas e rankings. Do primeiro &ldquo;hello&rdquo; a conversas
+              profissionais.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <ButtonLink href="/cadastro" size="lg">
@@ -60,9 +61,21 @@ export default function Landing() {
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6" aria-labelledby="modos">
         <h2 id="modos" className="text-center text-3xl font-extrabold tracking-tight">
-          Dois jogos, um objetivo: falar e escrever com confiança
+          Aprenda, pratique e jogue: falar e escrever com confiança
         </h2>
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <Card className="p-7">
+            <p className="text-4xl" aria-hidden="true">
+              📘
+            </p>
+            <h3 className="mt-3 text-xl font-bold">Lições guiadas</h3>
+            <ul className="mt-3 space-y-2 text-slate-600">
+              <li>• Nunca estudou? Comece pela Lição 1, sem pré-requisitos.</li>
+              <li>• Cada palavra e frase com tradução, áudio e explicação.</li>
+              <li>• Prática do fácil ao difícil: reconhecer, escolher e escrever.</li>
+              <li>• O que você errar volta até você acertar, e depois entra na revisão.</li>
+            </ul>
+          </Card>
           <Card className="p-7">
             <p className="text-4xl" aria-hidden="true">
               ⌨️
@@ -99,8 +112,8 @@ export default function Landing() {
             {[
               ["1", "Crie sua conta", "Seu progresso fica salvo e acessível em qualquer dispositivo."],
               ["2", "Escolha o idioma", "Informe seu nível ou faça um teste rápido de nivelamento."],
-              ["3", "Jogue sessões curtas", "Feedback imediato, revisão espaçada e dificuldade adaptada."],
-              ["4", "Suba nos rankings", "Ligas de Bronze a Mestre e temporadas mensais."],
+              ["3", "Aprenda com lições guiadas", "Cada lição apresenta o vocabulário e pratica até você dominar."],
+              ["4", "Pratique jogando", "Jogos de digitação e de voz, revisão espaçada e rankings."],
             ].map(([n, t, d]) => (
               <li key={n} className="rounded-2xl border border-slate-200 p-6">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 font-bold text-white">{n}</span>

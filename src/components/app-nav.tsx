@@ -8,6 +8,7 @@ import { cn } from "./ui";
 
 const MAIN = [
   { href: "/painel", label: "Painel", icon: "🏠" },
+  { href: "/aprender", label: "Aprender", icon: "📘" },
   { href: "/jogar", label: "Jogar", icon: "🎮" },
   { href: "/rankings", label: "Rankings", icon: "🏆" },
   { href: "/vocabulario", label: "Vocabulário", icon: "📖" },
@@ -15,6 +16,7 @@ const MAIN = [
 ];
 const MOBILE = [
   { href: "/painel", label: "Painel", icon: "🏠" },
+  { href: "/aprender", label: "Aprender", icon: "📘" },
   { href: "/jogar", label: "Jogar", icon: "🎮" },
   { href: "/rankings", label: "Rankings", icon: "🏆" },
   { href: "/perfil", label: "Perfil", icon: "👤" },
@@ -48,10 +50,10 @@ export function DesktopNav() {
 
 export function MobileNav() {
   const path = usePathname();
-  if (path.startsWith("/sessao")) return null; // tela de jogo usa toda a altura
+  if (path.startsWith("/sessao") || /^\/aprender\/\d+/.test(path)) return null; // tela de jogo usa toda a altura
   return (
     <nav aria-label="Navegação inferior" className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-      <ul className="grid grid-cols-4">
+      <ul className="grid grid-cols-5">
         {MOBILE.map((l) => (
           <li key={l.href}>
             <Link

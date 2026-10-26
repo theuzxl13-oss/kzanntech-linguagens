@@ -35,7 +35,8 @@ export async function chooseLanguage(page: Page, name: string, level = "A1") {
   await page.getByRole("radio", { name: new RegExp(name) }).click();
   await page.getByRole("radio", { name: new RegExp(`^${level}`) }).click();
   await page.getByRole("button", { name: `Continuar com ${level}` }).click();
-  await expect(page).toHaveURL(/\/jogar$/);
+  // Depois de escolher o idioma, o aluno vai para a trilha de aprendizado
+  await expect(page).toHaveURL(/\/aprender$/);
 }
 
 /** Resposta correta (lida do banco) para o exercício idx da sessão — simula um aluno que sabe a resposta. */

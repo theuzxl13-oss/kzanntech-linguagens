@@ -38,7 +38,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           </h1>
           {lang && (
             <p className="mt-2 text-sm text-brand-100">
-              {lang.flag} Nível {lang.level_code} · {lang.learned} de {lang.total} itens aprendidos
+              {lang.flag} Nível {lang.level_code}
+              {d.learning && ` · ${d.learning.done} de ${d.learning.total} lições concluídas`} · {lang.learned} itens aprendidos
               {lang.due > 0 && ` · ${lang.due} para revisar`}
             </p>
           )}
@@ -47,6 +48,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           {d.activeSession ? (
             <ButtonLink href={`/sessao/${d.activeSession.id}`} size="lg" variant="secondary">
               Continuar sessão
+            </ButtonLink>
+          ) : lang && d.learning?.next ? (
+            <ButtonLink href={`/aprender/${d.learning.next.unitId}`} size="lg" variant="secondary">
+              {d.learning.done === 0 ? "Começar a Lição 1" : `Continuar: Lição ${d.learning.next.position}`}
             </ButtonLink>
           ) : lang ? (
             <ButtonLink href="/jogar" size="lg" variant="secondary">

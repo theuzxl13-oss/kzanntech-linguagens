@@ -22,6 +22,7 @@ import {
 } from "@/lib/domain/scoring";
 import { nextReview, qualityFromTyping, qualityFromVoice } from "@/lib/domain/srs";
 import { bestVoiceMatch, voiceFeedback } from "@/lib/domain/voice-match";
+import { demoCompleteLesson } from "./lessons";
 import { ACHIEVEMENTS, ITEM_BY_ID, ITEMS, LANGUAGES, load, save, todayLocal, type DemoSession, type DemoState } from "./store";
 
 export class ApiError extends Error {
@@ -43,6 +44,13 @@ export async function api<T = unknown>(path: string, opts: { method?: string; bo
   await delay();
   const body = (opts.body ?? {}) as Record<string, unknown>;
   const s = load();
+  const lessonDone = path.match(/^\/api\/lessons\/(\d+)\/complete$/);
+  if (lessonDone) {
+    requireUser(s);
+    const r = demoCompleteLesson(s, Number(lessonDone[1]), Number(body.accuracy ?? 0));
+    save(s);
+    return r as T;
+  }
   const m = path.match(/^\/api\/sessions\/([^/]+)\/(serve|answer|skip|speak|finish)$/);
   if (m) {
     const session = s.sessions[m[1]];
@@ -188,10 +196,6 @@ function createSession(s: DemoState, b: Record<string, unknown>) {
   };
   s.sessions[id] = session;
   return { id, kind };
-}
-
-function localeOf(code: string) {
-  return LANGUAGES.find((l) => l.code === code)?.locale ?? "en-US";
 }
 
 function buildPrompt(session: DemoSession, idx: number) {

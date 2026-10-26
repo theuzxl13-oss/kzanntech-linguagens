@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, ApiError } from "@/lib/client/api";
@@ -47,7 +48,22 @@ async function start(router: ReturnType<typeof useRouter>, body: Record<string, 
   }
 }
 
-export function TypingSetup({ language, units, serverAudio, initialFocus, initialUnit }: { language: string; units: UnitInfo[]; serverAudio: boolean; initialFocus: boolean; initialUnit: number | null }) {
+export function TypingSetup({
+  language,
+  units,
+  serverAudio,
+  initialFocus,
+  initialUnit,
+  beginner = false,
+}: {
+  language: string;
+  units: UnitInfo[];
+  serverAudio: boolean;
+  initialFocus: boolean;
+  initialUnit: number | null;
+  /** Aluno ainda sem lições concluídas: sugere começar pela trilha. */
+  beginner?: boolean;
+}) {
   const router = useRouter();
   const [format, setFormat] = useState<"mixed" | "translate" | "write" | "listen">("mixed");
   const [preset, setPreset] = useState("quick");
@@ -64,6 +80,15 @@ export function TypingSetup({ language, units, serverAudio, initialFocus, initia
 
   return (
     <div className="space-y-8">
+      {beginner && !initialFocus && !focusedUnit && (
+        <Alert tone="info" title="Começando agora?">
+          Os jogos testam o que você já sabe. Se é a sua primeira vez com o idioma, faça antes as lições da{" "}
+          <Link href="/aprender" className="font-semibold underline">
+            trilha de aprendizado
+          </Link>
+          : elas apresentam cada palavra com tradução, áudio e explicação.
+        </Alert>
+      )}
       {(initialFocus || focusedUnit) && (
         <Card className="border-brand-200 bg-brand-50">
           <p className="font-semibold">{initialFocus ? `Revisão: ${totalDue} itens no momento ideal de revisar` : `Foco: ${focusedUnit!.icon} ${focusedUnit!.title}`}</p>

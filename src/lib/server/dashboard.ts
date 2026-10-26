@@ -4,6 +4,8 @@ import { levelProgress } from "../domain/scoring";
 import { db, query, queryOne } from "./db";
 import { dayActivity } from "./game/finish";
 import { getUserStandings } from "./rankings";
+import { getLearningPath } from "./lessons";
+import { nextLesson } from "../domain/lessons";
 import type { CurrentUser } from "./session-store";
 
 export async function getDashboard(user: CurrentUser) {
@@ -105,6 +107,14 @@ export async function getDashboard(user: CurrentUser) {
   );
 
   const standings = await getUserStandings(user.id);
+  const path = user.currentLanguage ? await getLearningPath(user.id, user.currentLanguage) : null;
+  const learning = path
+    ? {
+        done: path.lessons.filter((l) => l.status === "completed").length,
+        total: path.lessons.length,
+        next: nextLesson(path.lessons),
+      }
+    : null;
 
   // Recomendações
   const current = languages.find((l) => l.code === user.currentLanguage) ?? languages[0] ?? null;
@@ -135,11 +145,21 @@ export async function getDashboard(user: CurrentUser) {
     }
   }
   const voicePlayed = modes.find((m) => m.mode === "voice");
-  if (!voicePlayed) {
-    recommendations.push({ title: "Experimente o Jogo com Vozes", description: "Pratique a pronúncia ouvindo e repetindo frases.", href: "/jogar/voz" });
+  // A próxima lição da trilha vem sempre em primeiro: quem está começando aprende antes de ser testado.
+  if (learning?.next) {
+    recommendations.unshift({
+      title: `Lição ${learning.next.position}: ${learning.next.title}`,
+      description: "Próxima lição da sua trilha: palavras novas com tradução, áudio e prática guiada.",
+      href: `/aprender/${learning.next.unitId}`,
+    });
   }
-  if (!modes.find((m) => m.mode === "typing")) {
-    recommendations.push({ title: "Comece pelo Jogo de Digitar", description: "Uma sessão rápida de 10 exercícios.", href: "/jogar/digitar" });
+  if (learning && learning.done > 0) {
+    if (!voicePlayed) {
+      recommendations.push({ title: "Experimente o Jogo com Vozes", description: "Pratique a pronúncia ouvindo e repetindo frases.", href: "/jogar/voz" });
+    }
+    if (!modes.find((m) => m.mode === "typing")) {
+      recommendations.push({ title: "Teste o que aprendeu no Jogo de Digitar", description: "Uma sessão rápida de 10 exercícios.", href: "/jogar/digitar" });
+    }
   }
 
   const learnedTotal = languages.reduce((s, l) => s + l.learned, 0);
@@ -167,6 +187,7 @@ export async function getDashboard(user: CurrentUser) {
     weekly: { xp: weekXp, goal: user.weeklyGoalXp },
     activeSession,
     standings,
+    learning,
     recommendations: recommendations.slice(0, 3),
   };
 }

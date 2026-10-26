@@ -29,6 +29,13 @@ Proteções:
 - XP decrescente para itens repetidos; o ranking considera só as N melhores sessões.
 - Pular por "áudio indisponível" sem penalidade é limitado a 3 itens por sessão.
 
+## Escola × jogo
+
+O KeyLingo separa **aprender** de **praticar/competir**:
+
+- **Trilha de aprendizado** (`/aprender`): lições = unidades (nível + tema) em ordem pedagógica. Cada lição apresenta os itens e pratica em dificuldade crescente (múltipla escolha idioma→PT, PT→idioma, escrita com dica). Erros voltam no fim da fila (na 2ª volta a resposta aparece para copiar; após o 3º erro a lição segue e o item fica para a revisão). A precisão vem do navegador e só define estrelas; o XP é fixo (25 na 1ª conclusão, 5 ao repetir, no máximo uma vez por dia por lição). Ao concluir, os itens entram na revisão espaçada (1ª revisão no dia seguinte). Tabela `user_lessons`.
+- **Jogos** (`/jogar`): testam e consolidam o vocabulário, com pontuação calculada no servidor e rankings.
+
 ## Modelo de dados (resumo)
 
 - **Catálogo:** `languages`, `levels`, `categories`, `units`, `content_items` (com `review_status`, `source`, `formats`), `accepted_answers` (`to_pt` / `to_target`), `audio_assets`.

@@ -5,6 +5,8 @@ import Landing from "@/app/(public)/page";
 import { DesktopNav, MobileNav, UserMenu } from "@/components/app-nav";
 import { LoginForm, SignupForm } from "@/components/auth-forms";
 import { LanguagePicker } from "@/components/language-picker";
+import { LearningPath } from "@/components/learning-path";
+import { LessonPlayer } from "@/components/lesson-player";
 import { TypingPlayer } from "@/components/player/typing-player";
 import { VoicePlayer } from "@/components/player/voice-player";
 import { TypingSetup } from "@/components/session-setup";
@@ -32,6 +34,8 @@ import { challengeProgress, dailyChallenges } from "@/lib/domain/challenges";
 import { FORMAT_LABELS } from "@/lib/domain/presets";
 import { DEFAULT_RULES, generalScore, leagueFor, levelProgress, modalityScore } from "@/lib/domain/scoring";
 import { dayActivity, getView } from "./mock-api";
+import { demoLesson, demoPath } from "./lessons";
+import { nextLesson } from "@/lib/domain/lessons";
 import { navigate, useHashRoute } from "./shims/navigation";
 import Link from "./shims/link";
 import { ACHIEVEMENTS, DEMO_PLAYERS, ITEMS, LANGUAGES, LEVELS, UNITS, load, resetDemo, save, todayLocal, type DemoState } from "./store";
@@ -202,6 +206,9 @@ function Dashboard({ s }: { s: DemoState }) {
     .slice(0, 6)
     .map(([code]) => ACHIEVEMENTS.find((a) => a.code === code)!);
   const active = Object.values(s.sessions).find((x) => x.status === "active");
+  const path = lang ? demoPath(s, lang.code) : null;
+  const lessonsDone = path ? path.lessons.filter((l) => l.status === "completed").length : 0;
+  const nextL = path ? nextLesson(path.lessons) : null;
 
   return (
     <div className="space-y-8">
@@ -215,12 +222,16 @@ function Dashboard({ s }: { s: DemoState }) {
           </h1>
           {lang && (
             <p className="mt-2 text-sm text-brand-100">
-              {lang.flag} Nível {user.levels[lang.code] ?? "A1"} · {learned} itens aprendidos{due ? ` · ${due} para revisar` : ""}
+              {lang.flag} Nível {user.levels[lang.code] ?? "A1"} · {lessonsDone} de {path!.lessons.length} lições concluídas{due ? ` · ${due} para revisar` : ""}
             </p>
           )}
         </div>
-        <ButtonLink href={active ? `/sessao/${active.id}` : lang ? "/jogar" : "/idiomas"} size="lg" variant="secondary">
-          {active ? "Continuar sessão" : lang ? "Continuar aprendendo" : "Escolher idioma"}
+        <ButtonLink
+          href={active ? `/sessao/${active.id}` : nextL ? `/aprender/${nextL.unitId}` : lang ? "/jogar" : "/idiomas"}
+          size="lg"
+          variant="secondary"
+        >
+          {active ? "Continuar sessão" : nextL ? (lessonsDone === 0 ? "Começar a Lição 1" : `Continuar: Lição ${nextL.position}`) : lang ? "Continuar aprendendo" : "Escolher idioma"}
         </ButtonLink>
       </section>
 
@@ -323,6 +334,14 @@ function Dashboard({ s }: { s: DemoState }) {
         <section>
           <SectionTitle>Recomendado para você</SectionTitle>
           <div className="space-y-3">
+            {nextL && (
+              <Link href={`/aprender/${nextL.unitId}`} className="block rounded-2xl border border-brand-200 bg-brand-50 p-4 shadow-sm hover:border-brand-400">
+                <p className="font-semibold">
+                  Lição {nextL.position}: {nextL.title}
+                </p>
+                <p className="text-sm text-slate-600">Próxima lição da sua trilha: palavras novas com tradução, áudio e prática guiada.</p>
+              </Link>
+            )}
             {due > 0 && (
               <Link href="/jogar/digitar?foco=revisao" className="block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-brand-300">
                 <p className="font-semibold">Revisar {due} itens</p>
@@ -384,6 +403,13 @@ function PlayPage({ s }: { s: DemoState }) {
           </>
         }
       />
+      <p className="mb-5 rounded-xl bg-sky-50 p-3 text-sm text-sky-950">
+        📘 Os jogos servem para praticar e testar. Para aprender palavras novas, use as lições da{" "}
+        <Link href="/aprender" className="font-semibold underline">
+          trilha de aprendizado
+        </Link>
+        .
+      </p>
       <div className="grid gap-5 md:grid-cols-2">
         {[
           { href: "/jogar/digitar", icon: "⌨️", title: "Jogo de Digitar", text: "Traduza, escreva no idioma e digite o que ouvir. Desafios cronometrados ou prática livre." },
@@ -807,7 +833,19 @@ function App() {
           />
         </>
       );
-    else if (path === "/jogar") body = <PlayPage s={s} />;
+    else if (path === "/aprender") {
+      const p = demoPath(s, lang!.code);
+      body = <LearningPath language={{ code: lang!.code, name: lang!.name_pt, flag: lang!.flag }} levelCode={p.levelCode} lessons={p.lessons} />;
+    } else if (/^\/aprender\/\d+$/.test(path)) {
+      const lesson = demoLesson(s, Number(path.split("/").pop()));
+      body = lesson ? (
+        <LessonPlayer key={lesson.unitId} lesson={lesson} ttsRate={1} />
+      ) : (
+        <EmptyState icon="🔒" title="Lição bloqueada" action={<ButtonLink href="/aprender">Ver a trilha</ButtonLink>}>
+          Conclua a lição anterior para liberar esta.
+        </EmptyState>
+      );
+    } else if (path === "/jogar") body = <PlayPage s={s} />;
     else if (path === "/jogar/digitar")
       body = (
         <>
@@ -819,6 +857,7 @@ function App() {
             serverAudio={false}
             initialFocus={query.get("foco") === "revisao"}
             initialUnit={query.get("unidade") ? Number(query.get("unidade")) : null}
+            beginner={Object.keys(s.lessons ?? {}).length === 0}
           />
         </>
       );

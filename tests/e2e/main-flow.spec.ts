@@ -8,6 +8,7 @@ test.describe("Fluxo principal do aluno", () => {
     const user = await signup(page);
     await chooseLanguage(page, "Inglês", "A1");
 
+    await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Jogar" }).click();
     await page.getByRole("link", { name: /Jogo de Digitar/ }).click();
     await expect(page.getByRole("heading", { name: /Jogo de Digitar/ })).toBeVisible();
     await page.getByRole("radio", { name: /Tradução/ }).click();

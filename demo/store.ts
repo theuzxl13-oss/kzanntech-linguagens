@@ -125,6 +125,7 @@ export interface DemoState {
   achievements: Record<string, number>;
   xpEvents: { at: number; amount: number; source: string; ref: string }[];
   challenges: Record<string, number>;
+  lessons?: Record<number, { best: number; at: number; times: number; lastXpDay: string }>;
 }
 
 const KEY = "keylingo-demo-v1";
@@ -139,6 +140,7 @@ function empty(): DemoState {
     achievements: {},
     xpEvents: [],
     challenges: {},
+    lessons: {},
   };
 }
 

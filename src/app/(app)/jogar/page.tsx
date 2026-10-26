@@ -40,6 +40,13 @@ export default async function PlayPage() {
           </>
         }
       />
+      <p className="mb-5 rounded-xl bg-sky-50 p-3 text-sm text-sky-950">
+        📘 Os jogos servem para praticar e testar. Para aprender palavras novas, use as lições da{" "}
+        <Link href="/aprender" className="font-semibold underline">
+          trilha de aprendizado
+        </Link>
+        .
+      </p>
       <div className="grid gap-5 md:grid-cols-2">
         {modes.map((m) => (
           <Link key={m.href} href={m.href} className="group block focus-visible:outline-none">

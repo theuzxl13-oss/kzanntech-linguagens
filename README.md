@@ -8,7 +8,7 @@ Plataforma web gamificada para aprender idiomas **digitando** e **falando**. Ing
 
 Uma versão de **demonstração** roda inteira no navegador, sem servidor nem banco: **https://theuzxl13-oss.github.io/kzanntech-linguagens/** (disponível depois de ativar o Pages, veja abaixo).
 
-- Usa as mesmas telas, regras de correção, pontuação, XP e conteúdo do app real.
+- Usa as mesmas telas (inclusive a trilha de lições), regras de correção, pontuação, XP e conteúdo do app real.
 - O progresso fica salvo só no navegador (`localStorage`); os rankings usam jogadores fictícios marcados como DEMO.
 - Não tem: contas reais, e-mail, painel administrativo, avaliação de pronúncia no servidor nem proteções anti-fraude (tudo roda no navegador).
 - Voz: usa o reconhecimento de fala do navegador (Chrome, Edge ou Safari); o áudio de referência usa as vozes instaladas no dispositivo.
@@ -20,6 +20,7 @@ Para publicar: **Settings → Pages → Build and deployment → Source: GitHub 
 | Área | O que existe |
 |---|---|
 | Conta | Cadastro, login, logout, recuperação de senha, verificação de e-mail, troca de senha, perfil (apelido/avatar), exclusão de conta e exportação de dados (LGPD) |
+| Trilha de aprendizado (escola) | Lições em sequência para quem começa do zero: apresentação de cada palavra/frase (tradução, áudio, explicação), prática guiada em dificuldade crescente (reconhecer → escolher → escrever com dica), erros voltando até o domínio, dicas iniciais de cada idioma, desbloqueio progressivo (quem declara nível mais alto pode pular), XP e revisão espaçada dos itens aprendidos |
 | Idiomas | 5 idiomas, níveis CEFR (A1–C2), 10 categorias, unidades por tema, teste de nivelamento opcional; novos idiomas pelo admin sem alterar código |
 | Jogo de Digitar | Tradução (idioma → PT), escrita (PT → idioma), escuta e digitação; sessão rápida, desafios de 60 s / 3 min / 5 min, prática livre; pausa (sem cronômetro), novas tentativas, "Não sei", explicação do erro com diff, teclas de acentos, retomada após recarregar |
 | Jogo com Vozes | Ouvir referência, gravar, transcrição, nota, palavras destacadas, dicas, até 3 tentativas; consentimento do microfone; avaliação de pronúncia real no servidor (Azure) **ou** avaliação aproximada do navegador, claramente rotulada |
@@ -104,6 +105,7 @@ Cobrem: cadastro/login/recuperação/verificação, escolha de idioma, os três 
 
 - **A avaliação de pronúncia real não foi testada contra a API da Azure.** O adaptador segue a API REST documentada e tem testes de contrato com `fetch` simulado, mas não havia chave disponível. Teste com uma chave real antes de anunciar o recurso.
 - Sem chave Azure, a voz usa a Web Speech API do navegador (Chrome, Edge, Safari; o Firefox não oferece). A nota é **aproximada** (palavras reconhecidas), as sessões de voz não entram no ranking por padrão e o áudio de referência depende das vozes do dispositivo. A escuta competitiva no Jogo de Digitar exige áudio do servidor.
+- Algumas lições da trilha são curtas (1–2 itens) porque o conteúdo inicial tem poucos itens em certos temas/níveis; ampliar o conteúdo pelo painel admin resolve.
 - **O conteúdo inicial não é verificado:** 71 conceitos × 5 idiomas (355 itens) foram redigidos com apoio de IA e estão marcados como *pendentes de revisão*. Precisam ser revisados por professores/nativos no painel admin. Não há gravações humanas; o áudio é sintético. Faltam frases de exemplo na maioria dos itens.
 - Política de Privacidade e Termos são modelos que exigem revisão jurídica e os dados do controlador.
 - Login social não foi implementado. O e-mail exige Resend (Cloudflare) ou SMTP (Node.js) configurado em produção.
