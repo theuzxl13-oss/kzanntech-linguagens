@@ -109,10 +109,11 @@ export async function listVocabulary(userId: string, language: string, filter: "
     wrong_count: number | null;
     reps: number | null;
     due_at: Date | null;
+    is_due: boolean;
   }>(
     `select i.id, i.text, i.translation_pt, i.explanation, i.kind, i.level_code, c.name_pt as category, c.icon, i.review_status,
             (select array_agg(a.answer order by a.answer) from accepted_answers a where a.item_id = i.id and a.direction = 'to_target' and not a.is_primary) as alternatives,
-            p.correct_count, p.wrong_count, p.reps, p.due_at
+            p.correct_count, p.wrong_count, p.reps, p.due_at, coalesce(p.due_at <= now(), false) as is_due
        from content_items i
        join categories c on c.slug = i.category_slug
        join levels lv on lv.code = i.level_code

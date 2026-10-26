@@ -99,7 +99,9 @@ export async function createSession(user: SessionUser, input: z.infer<typeof cre
   const lang = await getLanguage(input.language);
   if (!lang || !lang.is_active) throw badRequest("invalid_language", "Idioma indisponível.");
 
-  const kind = preset.id === "placement" ? "placement" : input.ranked && preset.rankedAllowed ? "ranked" : "practice";
+  // Sessões filtradas (unidade ou revisão) são só prática: o ranking usa a seleção adaptativa completa.
+  const focused = !!input.unitId || !!input.focus;
+  const kind = preset.id === "placement" ? "placement" : input.ranked && preset.rankedAllowed && !focused ? "ranked" : "practice";
   const format = input.mode === "voice" ? "speak" : preset.id === "placement" ? "translate" : (input.format ?? "mixed");
 
   let verification: "server" | "client" = "server";
@@ -610,4 +612,35 @@ export async function resolveItemAudio(itemId: number, text: string, locale: str
     await logEvent("error", "speech.tts", (err as Error).message, { itemId });
     throw conflict("audio_unavailable", "Não foi possível gerar o áudio agora.");
   }
+}
+
+/** Resultado de uma sessão finalizada com a revisão de cada exercício (página de resultado). */
+export async function getSessionReport(userId: string, sessionId: string) {
+  if (!z.uuid().safeParse(sessionId).success) return null;
+  const s = await queryOne<SessionRow & { result: unknown; format: string; finished_at: Date | null }>(
+    `select * from game_sessions where id = $1 and user_id = $2`,
+    [sessionId, userId],
+  );
+  if (!s) return null;
+  const lang = (await getLanguage(s.language_code))!;
+  const items = await query<{
+    idx: number;
+    format: string;
+    result: string | null;
+    excluded: boolean;
+    score: number | null;
+    points: number;
+    xp: number;
+    attempts: number;
+    text: string;
+    translation_pt: string;
+    first_answer: string | null;
+  }>(
+    `select si.idx, si.format, si.result, si.excluded, si.score::float as score, si.points, si.xp, si.attempts, ci.text, ci.translation_pt,
+            (select a.answer_text from answers a where a.session_id = si.session_id and a.idx = si.idx order by a.attempt_no limit 1) as first_answer
+       from session_items si join content_items ci on ci.id = si.item_id
+      where si.session_id = $1 and si.result is not null order by si.idx`,
+    [sessionId],
+  );
+  return { session: s, language: lang, items };
 }

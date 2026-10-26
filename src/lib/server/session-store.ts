@@ -77,8 +77,10 @@ export async function resolveAuthSession(token: string | undefined | null): Prom
       row.sessionId,
     ]);
   }
-  const { sessionId: _s, lastSeen: _l, ...user } = row;
-  return user;
+  const user: Partial<typeof row> = { ...row };
+  delete user.sessionId;
+  delete user.lastSeen;
+  return user as CurrentUser;
 }
 
 export async function revokeAuthSession(token: string): Promise<void> {

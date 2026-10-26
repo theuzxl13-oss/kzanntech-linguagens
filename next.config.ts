@@ -16,7 +16,7 @@ const securityHeaders = [
       `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
-      "media-src 'self' blob: data:",
+      "media-src 'self' blob: data: https:",
       "font-src 'self' data:",
       `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
       "frame-ancestors 'none'",

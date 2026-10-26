@@ -64,6 +64,23 @@ interface FinishItem {
   level_code: string;
 }
 
+interface SessionDbRow {
+  id: string;
+  user_id: string;
+  language_code: string;
+  mode: "typing" | "voice";
+  format: string;
+  kind: "ranked" | "practice" | "placement";
+  verification: "server" | "client";
+  duration_seconds: number | null;
+  target_count: number;
+  started_at: Date;
+  timer_started_at: Date | null;
+  expires_at: Date;
+  status: string;
+  result: unknown;
+}
+
 export const finishSchema = z.object({ reason: z.enum(["completed", "time_up", "quit"]).default("completed") });
 
 /**
@@ -77,7 +94,7 @@ export async function finishSession(userId: string, sessionId: string, reason: E
   const rules = await getScoringRules();
   return tx(async (client) => {
     const s = (
-      await client.query(`select * from game_sessions where id = $1 and user_id = $2 for update`, [sessionId, userId])
+      await client.query<SessionDbRow>(`select * from game_sessions where id = $1 and user_id = $2 for update`, [sessionId, userId])
     ).rows[0];
     if (!s) throw notFound("Sessão não encontrada.");
     if (s.status === "finished") return s.result as SessionResult;
@@ -94,7 +111,7 @@ export async function finishSession(userId: string, sessionId: string, reason: E
 
 async function applyFinish(
   client: PoolClient,
-  s: Record<string, any>,
+  s: SessionDbRow,
   rules: ScoringRules,
   seasonId: number,
   endReason: EndReason,
