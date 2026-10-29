@@ -59,4 +59,20 @@ describe("Azure AI Speech (fetch simulado)", () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("", { status: 429 })));
     await expect(p.synthesize("hi", "en-US")).rejects.toMatchObject({ retryable: true });
   });
+
+  it("AUD-04: resposta 200 com corpo inválido vira erro do provedor (mensagem amigável), não erro interno", async () => {
+    const { SpeechProviderError } = await import("@/lib/server/speech/types");
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("<html>Bad gateway</html>", { status: 200, headers: { "content-type": "text/html" } })));
+    const p = createAzureProvider("KEY", "brazilsouth");
+    await expect(p.assessPronunciation(Buffer.from([1, 2]), "audio/wav", "hello", "en-US")).rejects.toBeInstanceOf(SpeechProviderError);
+  });
+
+  it("AUD-04: falha de rede/timeout vira erro do provedor", async () => {
+    const { SpeechProviderError } = await import("@/lib/server/speech/types");
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new DOMException("The operation was aborted due to timeout", "TimeoutError"); }));
+    const p = createAzureProvider("KEY", "brazilsouth");
+    await expect(p.synthesize("hello", "en-US", {})).rejects.toBeInstanceOf(SpeechProviderError);
+    await expect(p.assessPronunciation(Buffer.from([1]), "audio/wav", "hello", "en-US")).rejects.toBeInstanceOf(SpeechProviderError);
+  });
 });
+

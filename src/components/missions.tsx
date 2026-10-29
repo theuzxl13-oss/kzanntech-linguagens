@@ -43,6 +43,7 @@ export function MissionStartButton({ missionId, label, variant = "primary" }: { 
 export interface MissionSummaryView {
   score: number;
   xp: number;
+  weeklyGoalXp?: number;
   firstCompletion: boolean;
   learnedPt: string;
   wellDone: string[];
@@ -319,6 +320,7 @@ function MissionSummaryCard({ summary: s, lang }: { summary: MissionSummaryView;
       <div className="flex flex-wrap gap-2 text-sm">
         <Badge color="green">Desempenho na missão: {Math.round(s.score * 100)}%</Badge>
         <Badge color="brand">+{s.xp} XP</Badge>
+        {!!s.weeklyGoalXp && <Badge color="green">🎯 meta semanal: +{s.weeklyGoalXp} XP</Badge>}
         {!s.firstCompletion && <Badge>repetição: XP reduzido</Badge>}
       </div>
       {s.wellDone.length > 0 && (

@@ -118,12 +118,14 @@ export function ProfileForms({ profile }: { profile: Profile }) {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2" /* grid-cols-1: conteúdo longo (e-mail) não alarga a página no celular */>
       <Section title="Perfil público" id="perfil">
         <form onSubmit={saveProfile} className="space-y-4">
           <div className="flex items-center gap-3">
             <Avatar avatar={p.avatar} color={p.avatarColor} size="lg" label="Pré-visualização do avatar" />
-            <p className="text-sm text-slate-600">É assim que você aparece nos rankings. Seu e-mail ({profile.email}) nunca é exibido.</p>
+            <p className="min-w-0 text-sm text-slate-600">
+              É assim que você aparece nos rankings. Seu e-mail (<span className="break-all">{profile.email}</span>) nunca é exibido.
+            </p>
           </div>
           <Field label="Apelido" htmlFor="nickname" hint="3 a 24 caracteres: letras, números, ponto, hífen ou sublinhado.">
             <Input id="nickname" value={p.nickname} onChange={(e) => setP({ ...p, nickname: e.target.value })} />
@@ -225,7 +227,7 @@ export function ProfileForms({ profile }: { profile: Profile }) {
 
       <Section title="Segurança" id="seguranca">
         <form onSubmit={changePassword} className="space-y-4">
-          <p className="text-sm text-slate-600">E-mail: {profile.email} {profile.emailVerified ? "✓ verificado" : "(não verificado)"}</p>
+          <p className="break-all text-sm text-slate-600">E-mail: {profile.email} {profile.emailVerified ? "✓ verificado" : "(não verificado)"}</p>
           <Field label="Senha atual" htmlFor="cur">
             <Input id="cur" type="password" autoComplete="current-password" value={pw.currentPassword} onChange={(e) => setPw({ ...pw, currentPassword: e.target.value })} />
           </Field>

@@ -6,7 +6,7 @@ import { query, queryOne, tx } from "./db";
 import { getEntitlements, planRequired } from "./entitlements";
 import { conflict, notFound } from "./errors";
 import { enforceRateLimit } from "./rate-limit";
-import { applyStudyDay, userToday } from "./study";
+import { applyStudyDay, awardWeeklyGoalIfReached, userToday } from "./study";
 
 export const completeLessonSchema = z.object({ accuracy: z.number().min(0).max(1) });
 
@@ -149,9 +149,11 @@ export async function completeLesson(userId: string, unitId: number, accuracy: n
       [userId, unitId, PLAYABLE_STATUSES],
     );
 
+    // A meta semanal considera o XP de qualquer atividade (sessões, lições, missões)
+    const weeklyGoalXp = xp > 0 ? await awardWeeklyGoalIfReached(client, userId) : 0;
     // Estudar a lição conta para a sequência de dias
-    await applyStudyDay(client, userId, xp, today);
+    await applyStudyDay(client, userId, xp + weeklyGoalXp, today);
     await client.query(`update user_languages set last_studied_at = now() where user_id = $1 and language_code = $2`, [userId, lesson.language.code]);
-    return { ok: true, xp, firstTime: !prev, nextUnitId: lesson.nextUnitId };
+    return { ok: true, xp, weeklyGoalXp, firstTime: !prev, nextUnitId: lesson.nextUnitId };
   });
 }

@@ -98,14 +98,14 @@ docs/                  Arquitetura, pontuação, implantação
 - [Fórmulas de pontuação, XP, rankings e ligas](docs/SCORING.md)
 - [Cloudflare (passo a passo), Supabase, serviços de áudio, e-mail e testes](docs/DEPLOY.md)
 - [Planos, assinaturas e cobrança](docs/BILLING.md)
-- [Auditoria técnica e correções](docs/AUDIT.md)
+- [Auditoria técnica e correções](docs/AUDIT.md) · [auditoria completa de 2026-10-29](docs/AUDITORIA-2026-10-29.md)
 - [Operação, monitoramento e CI](docs/OPERATIONS.md) · [Privacidade e retenção](docs/PRIVACY.md)
 - [Relatório final da evolução para SaaS](docs/RELATORIO-FINAL.md)
 - [RPG: diagnóstico](docs/RPG-DIAGNOSTICO.md) · [game design](docs/GAME-DESIGN.md) · [entrega da 1ª etapa](docs/RPG-ENTREGA.md)
 
 ## Testes
 
-Última execução: **94 unitários, 62 de integração (PostgreSQL 16) e 24 E2E (Chromium desktop + Pixel 7) — todos passando** no build Node.js (`next start`). Uma rodada anterior dos E2E também passou no runtime do Cloudflare Workers (`wrangler dev`).
+Última execução: **98 unitários, 64 de integração (PostgreSQL 16) e 25 E2E (Chromium desktop + Pixel 7) — todos passando** no build Node.js (`next start`). Uma rodada anterior dos E2E também passou no runtime do Cloudflare Workers (`wrangler dev`).
 
 Cobrem: cadastro/login/recuperação/verificação, escolha de idioma, os três formatos de digitação, voz (provedor simulado no servidor e reconhecimento do navegador simulado), microfone negado, cálculo de pontuação, XP decrescente, níveis, rankings individuais e geral, temporadas, segurança de rotas, CSRF, rate limit, envio duplicado, manipulação de pontuação, sessão interrompida, resposta vazia, áudio indisponível e responsividade.
 

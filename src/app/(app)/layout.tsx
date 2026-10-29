@@ -31,7 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </nav>
       </header>
-      <main id="conteudo" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-6 sm:px-6 md:pb-12">
+      <main id="conteudo" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-6 sm:px-6 lg:pb-12">
         {children}
       </main>
       <MobileNav />

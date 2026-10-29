@@ -21,7 +21,7 @@ import { PLAYABLE_STATUSES } from "./content";
 import { query, queryOne, tx } from "./db";
 import { conflict, notFound } from "./errors";
 import { enforceRateLimit } from "./rate-limit";
-import { applyStudyDay, userToday } from "./study";
+import { applyStudyDay, awardWeeklyGoalIfReached, userToday } from "./study";
 
 export const answerMissionSchema = z.object({
   step: z.number().int().min(0).max(50),
@@ -72,6 +72,8 @@ export interface MissionAnswerResponse {
 export interface MissionSummary {
   score: number;
   xp: number;
+  /** Bônus da meta semanal concedido ao concluir esta missão (0 se não houve). */
+  weeklyGoalXp: number;
   firstCompletion: boolean;
   learnedPt: string;
   wellDone: string[];
@@ -354,7 +356,8 @@ async function finalize(client: PoolClient, userId: string, a: AttemptRow, m: Mi
   const ref = firstCompletion ? m.id : `${m.id}:${today}`;
   const ins = amount > 0 ? await client.query(`insert into xp_events (user_id, source, ref, amount) values ($1,'mission',$2,$3) on conflict do nothing`, [userId, ref, amount]) : null;
   const xp = ins?.rowCount ? amount : 0;
-  await applyStudyDay(client, userId, xp, today);
+  const weeklyGoalXp = xp > 0 ? await awardWeeklyGoalIfReached(client, userId) : 0;
+  await applyStudyDay(client, userId, xp + weeklyGoalXp, today);
   await client.query(`update user_languages set last_studied_at = now() where user_id = $1 and language_code = $2`, [userId, m.language_code]);
 
   // Revisão espaçada: com desempenho fraco, o vocabulário da missão volta para revisão agora;
@@ -398,6 +401,7 @@ async function finalize(client: PoolClient, userId: string, a: AttemptRow, m: Mi
   const summary: MissionSummary = {
     score,
     xp,
+    weeklyGoalXp,
     firstCompletion,
     learnedPt: spec.learnedPt,
     wellDone: steps.filter((x) => x.score >= 0.85).map((x) => x.s.goalPt),

@@ -28,7 +28,7 @@ export function LessonPlayer({ lesson, ttsRate }: { lesson: LessonData; ttsRate:
   const [typed, setTyped] = useState("");
   const [feedback, setFeedback] = useState<{ ok: boolean; note: string | null } | null>(null);
   const [firstTry, setFirstTry] = useState({ total: 0, correct: 0 });
-  const [result, setResult] = useState<{ xp: number; firstTime: boolean } | null>(null);
+  const [result, setResult] = useState<{ xp: number; firstTime: boolean; weeklyGoalXp?: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const continueRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -87,7 +87,7 @@ export function LessonPlayer({ lesson, ttsRate }: { lesson: LessonData; ttsRate:
     setError(null);
     const accuracy = firstTry.total ? firstTry.correct / firstTry.total : 1;
     try {
-      const r = await api<{ xp: number; firstTime: boolean }>(`/api/lessons/${lesson.unitId}/complete`, { body: { accuracy } });
+      const r = await api<{ xp: number; firstTime: boolean; weeklyGoalXp?: number }>(`/api/lessons/${lesson.unitId}/complete`, { body: { accuracy } });
       setResult(r);
       setPhase("done");
     } catch (e) {
@@ -230,6 +230,7 @@ export function LessonPlayer({ lesson, ttsRate }: { lesson: LessonData; ttsRate:
           </p>
           <p className="mt-2 text-slate-600">
             Acertou {Math.round(accuracy * 100)}% na primeira tentativa{result.xp > 0 ? ` · +${result.xp} XP` : ""}.
+            {!!result.weeklyGoalXp && ` 🎯 Meta semanal atingida: +${result.weeklyGoalXp} XP de bônus!`}
           </p>
           <p className="mt-3 text-sm text-slate-600">
             As palavras desta lição entraram na sua revisão: elas vão voltar amanhã para ficar na memória.

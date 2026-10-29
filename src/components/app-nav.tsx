@@ -29,7 +29,7 @@ function isActive(path: string, href: string) {
 export function DesktopNav() {
   const path = usePathname();
   return (
-    <ul className="hidden items-center gap-1 md:flex">
+    <ul className="hidden items-center gap-1 lg:flex">
       {MAIN.map((l) => (
         <li key={l.href}>
           <Link
@@ -52,7 +52,7 @@ export function MobileNav() {
   const path = usePathname();
   if (path.startsWith("/sessao") || /^\/aprender\/\d+/.test(path)) return null; // tela de jogo usa toda a altura
   return (
-    <nav aria-label="Navegação inferior" className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+    <nav aria-label="Navegação inferior" className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
       <ul className="grid grid-cols-5">
         {MOBILE.map((l) => (
           <li key={l.href}>

@@ -34,3 +34,10 @@ export async function readBodyLimited(req: Request, limit: number): Promise<Uint
   }
   return out;
 }
+
+/** Confere a assinatura real de um arquivo WAV ("RIFF"…"WAVE"), sem confiar no tipo declarado pelo cliente. */
+export function looksLikeWav(data: Uint8Array): boolean {
+  if (data.length < 12) return false;
+  const ascii = (from: number) => String.fromCharCode(...data.subarray(from, from + 4));
+  return ascii(0) === "RIFF" && ascii(8) === "WAVE";
+}

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { evaluateAchievements } from "../../domain/achievements";
 import { RESULT_CREDIT } from "../../domain/answer-check";
 import { challengeProgress, dailyChallenges, type DayActivity } from "../../domain/challenges";
-import { addDays, isoWeekKey, localDate, startOfIsoWeekUtc } from "../../domain/dates";
+import { addDays, localDate } from "../../domain/dates";
 import { ITEM_GRACE_SECONDS } from "../../domain/presets";
 import { itemXp, levelFromXp, typingRankPoints, voiceRankPoints, type ScoringRules } from "../../domain/scoring";
 import { nextReview, qualityFromTyping, qualityFromVoice } from "../../domain/srs";
@@ -12,6 +12,7 @@ import { tx } from "../db";
 import { notFound } from "../errors";
 import { ensureActiveSeason } from "../seasons";
 import { getScoringRules } from "../settings";
+import { awardWeeklyGoalIfReached } from "../study";
 
 export type EndReason = "completed" | "time_up" | "quit" | "replaced" | "expired";
 
@@ -368,21 +369,7 @@ async function applyFinish(
   const challengesXp = challenges.reduce((sum, c) => sum + c.xp, 0);
 
   // --- Meta semanal ---
-  let weeklyGoalXp = 0;
-  const weekXp = (
-    await client.query<{ xp: number }>(`select coalesce(sum(amount), 0)::int as xp from xp_events where user_id = $1 and created_at >= $2`, [
-      userId,
-      startOfIsoWeekUtc(now),
-    ])
-  ).rows[0].xp;
-  if (weekXp >= (profile?.weekly_goal_xp ?? 300)) {
-    const ins = await client.query(`insert into xp_events (user_id, source, ref, amount) values ($1,'weekly_goal',$2,$3) on conflict do nothing`, [
-      userId,
-      isoWeekKey(now),
-      rules.xp.weeklyGoalBonus,
-    ]);
-    if (ins.rowCount) weeklyGoalXp = rules.xp.weeklyGoalBonus;
-  }
+  const weeklyGoalXp = await awardWeeklyGoalIfReached(client, userId, now);
 
   const totalXp = sessionXp + achievementsXp + challengesXp + weeklyGoalXp;
   const xpAfter = (statsBefore?.xp_total ?? 0) + totalXp;

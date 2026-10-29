@@ -198,9 +198,13 @@ async function frozenRanking(
     points: number;
     position: number;
     league: string;
+    listed: boolean;
   }>(
-    `select r.user_id, p.nickname, p.avatar, p.avatar_color, p.is_demo, r.points, r.position, r.league
-       from season_results r join profiles p on p.user_id = r.user_id
+    // O placar congelado guarda a posição de todos, mas a lista pública respeita a escolha ATUAL
+    // de privacidade e a suspensão (como o ranking ao vivo). O próprio usuário sempre vê a sua linha.
+    `select r.user_id, p.nickname, p.avatar, p.avatar_color, p.is_demo, r.points, r.position, r.league,
+            (p.show_in_rankings and u.status = 'active') as listed
+       from season_results r join profiles p on p.user_id = r.user_id join users u on u.id = r.user_id
       where r.season_id = $1 and r.board = $2 and r.language_code = $3
       order by r.position, p.nickname`,
     [season.id, q.board, q.language ?? "*"],
@@ -225,6 +229,7 @@ async function frozenRanking(
     };
   };
   const viewer = viewerId ? rows.find((r) => r.user_id === viewerId) : undefined;
+  const listed = rows.filter((r) => r.listed);
   return {
     board: q.board,
     period: "season",
@@ -232,9 +237,9 @@ async function frozenRanking(
     range: { from: season.starts_at, to: season.ends_at },
     seasonName: season.name,
     frozen: true,
-    rows: rows.slice(0, limit).map(toRow),
+    rows: listed.slice(0, limit).map(toRow),
     viewer: viewer ? toRow(viewer) : null,
-    totalPlayers: rows.length,
+    totalPlayers: listed.length,
     rules: { topSessions: rules.ranking.topSessions, leagues: rules.leagues },
   };
 }

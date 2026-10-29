@@ -161,7 +161,8 @@ export function TypingSetup({
           Atividades por tema
         </h2>
         <p className="mb-3 text-sm text-slate-600">Pratique um tema específico (modo treino).</p>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {/* grid-cols-1 (minmax(0, 1fr)): sem ele, títulos longos alargam a coluna além da tela no celular */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {units.map((u) => (
             <Card key={u.id} className="flex items-center gap-3 p-4">
               <span className="text-2xl" aria-hidden="true">

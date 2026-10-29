@@ -72,7 +72,10 @@ export function createAzureProvider(key: string, region: string): SpeechProvider
         throw new SpeechProviderError(`Falha de rede no reconhecimento: ${(e as Error).message}`, true);
       });
       if (!res.ok) throw new SpeechProviderError(`Reconhecimento retornou HTTP ${res.status}`, res.status >= 500 || res.status === 429);
-      const data = (await res.json()) as {
+      // Corpo inválido (ex.: página de erro de proxy com HTTP 200) é falha do provedor, não erro interno
+      const data = (await res.json().catch(() => {
+        throw new SpeechProviderError("Resposta inválida do serviço de reconhecimento", true);
+      })) as {
         RecognitionStatus: string;
         NBest?: {
           Display: string;

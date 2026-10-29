@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { safeInternalPath } from "@/lib/domain/safe-redirect";
 import { minLessonSeconds } from "@/lib/domain/lessons";
 import { resolveClientIp } from "@/lib/server/client-ip";
-import { readBodyLimited } from "@/lib/server/body";
+import { looksLikeWav, readBodyLimited } from "@/lib/server/body";
 import { isAllowedAudioUrl } from "@/lib/server/game/sessions";
 import { hashPassword, needsRehash, verifyPassword } from "@/lib/server/password";
 
@@ -90,3 +90,22 @@ describe("INT-01: tempo mínimo da lição", () => {
     expect(minLessonSeconds(9)).toBe(46);
   });
 });
+
+describe("AUD-05: upload de áudio confere o conteúdo, não só o tipo declarado", () => {
+  const wav = (body = 0) => {
+    const b = new Uint8Array(44 + body);
+    b.set([..."RIFF"].map((c) => c.charCodeAt(0)), 0);
+    b.set([..."WAVE"].map((c) => c.charCodeAt(0)), 8);
+    return b;
+  };
+  it("aceita cabeçalho RIFF/WAVE", () => {
+    expect(looksLikeWav(wav(100))).toBe(true);
+  });
+  it("recusa outros formatos rotulados como audio/wav", () => {
+    expect(looksLikeWav(new TextEncoder().encode("<html>não é áudio</html>"))).toBe(false);
+    expect(looksLikeWav(new Uint8Array([0xff, 0xfb, 0x90, 0x00, 1, 2, 3, 4, 5, 6, 7, 8]))).toBe(false); // MP3
+    expect(looksLikeWav(new TextEncoder().encode("RIFF1234AVI LIST"))).toBe(false);
+    expect(looksLikeWav(new Uint8Array(4))).toBe(false);
+  });
+});
+

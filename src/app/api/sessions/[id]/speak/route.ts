@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { apiUser } from "@/lib/server/auth";
-import { AUDIO_BODY_LIMIT, readBodyLimited } from "@/lib/server/body";
+import { AUDIO_BODY_LIMIT, looksLikeWav, readBodyLimited } from "@/lib/server/body";
 import { badRequest } from "@/lib/server/errors";
 import { submitVoiceAttempt, voiceTranscriptSchema } from "@/lib/server/game/sessions";
 import { json, parseJson, route } from "@/lib/server/http";
@@ -29,6 +29,8 @@ export const POST = route(async (req, ctx: { params: Promise<{ id: string }> }) 
     if (file.size > MAX_AUDIO_BYTES) throw badRequest("audio_too_large", "Gravação longa demais (máx. ~60 s).");
     if (!/^audio\/wav/.test(file.type)) throw badRequest("audio_format", "Formato de áudio não suportado (use WAV PCM 16 kHz).");
     const data = Buffer.from(await file.arrayBuffer());
+    // O tipo declarado vem do cliente: confere o conteúdo antes de enviar ao provedor (custo por uso)
+    if (!looksLikeWav(data)) throw badRequest("audio_format", "Formato de áudio não suportado (use WAV PCM 16 kHz).");
     return json(await submitVoiceAttempt(user.id, id, { ...meta, audio: { data, contentType: "audio/wav; codecs=audio/pcm; samplerate=16000" } }));
   }
   const input = await parseJson(req, voiceTranscriptSchema);

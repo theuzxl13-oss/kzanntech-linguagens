@@ -183,3 +183,7 @@ Não feito (depende de pessoas/decisão): revisão do catálogo por professores 
 ## 8. RPG — missões de diálogo
 
 Diagnóstico, design e entrega: [RPG-DIAGNOSTICO.md](RPG-DIAGNOSTICO.md), [GAME-DESIGN.md](GAME-DESIGN.md), [RPG-ENTREGA.md](RPG-ENTREGA.md). Migração `0007_missions.sql`. Defeitos encontrados e corrigidos nesta etapa: fronteira de palavra `\b` sem Unicode nos padrões de erro (unit) e campo de resposta limpo durante o envio (E2E).
+
+## 9. Auditoria completa de 2026-10-29
+
+Relatório: [AUDITORIA-2026-10-29.md](AUDITORIA-2026-10-29.md). 6 problemas confirmados e corrigidos (layout em tablet/celular, privacidade no placar de temporadas encerradas, meta semanal fora das sessões, resposta inválida do provedor de voz, validação do conteúdo do áudio enviado) e 6 de baixa gravidade documentados para decisão.
