@@ -4,6 +4,7 @@
  * (correção, pontuação, XP, revisão espaçada, conquistas). Sem banco e sem validação anti-fraude:
  * serve apenas para conhecer a interface.
  */
+import { demoAnswer, demoAttemptView, demoHint, demoStartMission } from "./missions";
 import { evaluateAchievements } from "@/lib/domain/achievements";
 import { checkAnswer, RESULT_CREDIT } from "@/lib/domain/answer-check";
 import { challengeProgress, dailyChallenges } from "@/lib/domain/challenges";
@@ -40,11 +41,36 @@ const delay = () => new Promise((r) => setTimeout(r, 120));
 const rules = DEFAULT_RULES;
 const AVATARS = ["fox", "cat", "owl", "panda", "rabbit", "bear", "koala", "penguin", "frog", "lion"];
 
+function missionRoute(s: DemoState, path: string, body: Record<string, unknown>) {
+  const start = path.match(/^\/api\/missions\/([a-z0-9-]+)\/start$/);
+  if (start) return demoStartMission(s, start[1]);
+  const act = path.match(/^\/api\/missions\/attempts\/([0-9a-f-]+)(?:\/(answer|hint))?$/);
+  if (act) {
+    if (act[2] === "answer") return demoAnswer(s, act[1], { step: Number(body.step), tryNo: Number(body.tryNo), text: String(body.text ?? "") });
+    if (act[2] === "hint") return demoHint(s, act[1], Number(body.step));
+    const view = demoAttemptView(s, act[1]);
+    if (!view) throw new ApiError(404, "not_found", "Missão não encontrada.");
+    return view;
+  }
+  throw new ApiError(404, "not_found", "Não encontrado.");
+}
+
 export async function api<T = unknown>(path: string, opts: { method?: string; body?: unknown; form?: FormData } = {}): Promise<T> {
   await delay();
   const body = (opts.body ?? {}) as Record<string, unknown>;
   const s = load();
   if (/^\/api\/lessons\/\d+\/start$/.test(path)) return { ok: true } as T;
+  if (path.startsWith("/api/missions")) {
+    requireUser(s);
+    try {
+      const r = missionRoute(s, path, body);
+      save(s);
+      return r as T;
+    } catch (err) {
+      if (err instanceof ApiError) throw err;
+      throw new ApiError(409, "mission_error", (err as Error).message);
+    }
+  }
   const lessonDone = path.match(/^\/api\/lessons\/(\d+)\/complete$/);
   if (lessonDone) {
     requireUser(s);

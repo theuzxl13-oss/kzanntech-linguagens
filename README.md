@@ -10,6 +10,7 @@ Uma versão de **demonstração** roda inteira no navegador, sem servidor nem ba
 
 - Usa as mesmas telas (inclusive a trilha de lições), regras de correção, pontuação, XP e conteúdo do app real.
 - O progresso fica salvo só no navegador (`localStorage`); os rankings usam jogadores fictícios marcados como DEMO.
+- Inclui as missões de conversa (mesma avaliação do app, rodando no navegador).
 - Não tem: contas reais, e-mail, painel administrativo, avaliação de pronúncia no servidor nem proteções anti-fraude (tudo roda no navegador).
 - Voz: usa o reconhecimento de fala do navegador (Chrome, Edge ou Safari); o áudio de referência usa as vozes instaladas no dispositivo.
 
