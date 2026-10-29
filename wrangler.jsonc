@@ -23,6 +23,7 @@
   "vars": {
     "APP_URL": "https://keylingo.SEU-SUBDOMINIO.workers.dev",
     "EMAIL_TRANSPORT": "resend",
+    "TRUST_PROXY": "cloudflare",
     "EMAIL_FROM": "KeyLingo <onboarding@resend.dev>",
     "SPEECH_PROVIDER": "none",
     "VOICE_ALLOW_CLIENT_RANKED": "false"

@@ -44,6 +44,7 @@ export async function api<T = unknown>(path: string, opts: { method?: string; bo
   await delay();
   const body = (opts.body ?? {}) as Record<string, unknown>;
   const s = load();
+  if (/^\/api\/lessons\/\d+\/start$/.test(path)) return { ok: true } as T;
   const lessonDone = path.match(/^\/api\/lessons\/(\d+)\/complete$/);
   if (lessonDone) {
     requireUser(s);

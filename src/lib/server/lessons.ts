@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { addDays, localDate } from "../domain/dates";
-import { LESSON_XP, buildPath, type LessonData, type UnitForPath } from "../domain/lessons";
+import { LESSON_XP, buildPath, minLessonSeconds, type LessonData, type UnitForPath } from "../domain/lessons";
 import { levelFromXp } from "../domain/scoring";
 import { PLAYABLE_STATUSES, getLanguage, getUserLanguageLevel } from "./content";
 import { query, queryOne, tx } from "./db";
-import { notFound } from "./errors";
+import { conflict, notFound } from "./errors";
 import { enforceRateLimit } from "./rate-limit";
 
 export const completeLessonSchema = z.object({ accuracy: z.number().min(0).max(1) });
@@ -80,6 +80,19 @@ export async function getLesson(userId: string, unitId: number): Promise<LessonD
   };
 }
 
+/** Registra no servidor o início de uma lição (pré-requisito para concluí-la). */
+export async function startLesson(userId: string, unitId: number) {
+  await enforceRateLimit(`lesson-start:${userId}`, 120, 3600);
+  const lesson = await getLesson(userId, unitId);
+  if (!lesson) throw notFound("Lição não encontrada ou ainda bloqueada.");
+  await query(
+    `insert into lesson_attempts (user_id, unit_id) values ($1,$2)
+     on conflict (user_id, unit_id) do update set started_at = now()`,
+    [userId, unitId],
+  );
+  return { ok: true };
+}
+
 /**
  * Registra a conclusão de uma lição. A precisão vem do navegador (lição é estudo, não competição):
  * ela só define as estrelas exibidas; o XP é fixo e limitado a uma concessão por lição por dia.
@@ -90,6 +103,18 @@ export async function completeLesson(userId: string, unitId: number, accuracy: n
   if (!lesson) throw notFound("Lição não encontrada ou ainda bloqueada.");
   return tx(async (client) => {
     await client.query(`select pg_advisory_xact_lock(hashtext($1))`, [`finish:${userId}`]);
+    // A lição precisa ter sido iniciada no servidor e durado um tempo mínimo plausível
+    const attempt = (
+      await client.query<{ elapsed: number }>(
+        `delete from lesson_attempts where user_id = $1 and unit_id = $2
+         returning extract(epoch from now() - started_at)::float as elapsed`,
+        [userId, unitId],
+      )
+    ).rows[0];
+    if (!attempt) throw conflict("lesson_not_started", "Comece a lição antes de concluí-la.");
+    if (attempt.elapsed < minLessonSeconds(lesson.items.length)) {
+      throw conflict("lesson_too_fast", "A lição foi concluída rápido demais. Faça os exercícios para registrar o progresso.");
+    }
     const tz = (await client.query<{ timezone: string }>(`select timezone from profiles where user_id = $1`, [userId])).rows[0]?.timezone ?? "America/Sao_Paulo";
     const today = localDate(new Date(), tz);
     const prev = (await client.query(`select 1 from user_lessons where user_id = $1 and unit_id = $2`, [userId, unitId])).rowCount;
@@ -100,8 +125,17 @@ export async function completeLesson(userId: string, unitId: number, accuracy: n
       [userId, unitId, accuracy],
     );
     const ref = prev ? `${unitId}:${today}` : String(unitId);
-    const amount = prev ? LESSON_XP.repeat : LESSON_XP.first;
-    const ins = await client.query(`insert into xp_events (user_id, source, ref, amount) values ($1,'lesson',$2,$3) on conflict do nothing`, [userId, ref, amount]);
+    // Teto de XP de lições por 24 h (estudar mais continua registrando progresso, só não soma XP)
+    const lastDay = (
+      await client.query<{ xp: number }>(
+        `select coalesce(sum(amount), 0)::int as xp from xp_events where user_id = $1 and source = 'lesson' and created_at > now() - interval '24 hours'`,
+        [userId],
+      )
+    ).rows[0].xp;
+    const amount = Math.max(0, Math.min(prev ? LESSON_XP.repeat : LESSON_XP.first, LESSON_XP.dailyCap - lastDay));
+    const ins = amount > 0
+      ? await client.query(`insert into xp_events (user_id, source, ref, amount) values ($1,'lesson',$2,$3) on conflict do nothing`, [userId, ref, amount])
+      : { rowCount: 0 };
     const xp = ins.rowCount ? amount : 0;
 
     // Itens apresentados entram na revisão espaçada (primeira revisão amanhã), sem apagar progresso existente

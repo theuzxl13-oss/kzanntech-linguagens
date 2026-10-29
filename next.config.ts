@@ -7,6 +7,9 @@ const isDev = process.env.NODE_ENV !== "production";
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // HSTS só em produção (em http://localhost o navegador ignoraria e poderia atrapalhar o dev)
+  ...(isDev ? [] : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]),
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   // Microfone apenas na própria origem (Jogo com Vozes); câmera e localização bloqueadas.
   { key: "Permissions-Policy", value: "microphone=(self), camera=(), geolocation=(), payment=()" },

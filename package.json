@@ -20,10 +20,11 @@
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "demo:build": "node scripts/build-demo.mjs"
+    "demo:build": "node scripts/build-demo.mjs",
+    "db:maintenance": "tsx scripts/maintenance.ts"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.20.13",
+    "@opennextjs/cloudflare": "^1.20.14",
     "next": "16.4.3",
     "nodemailer": "^10.2.1",
     "pg": "^8.23.1",
@@ -49,9 +50,14 @@
     "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.0.5",
-    "wrangler": "^4.152.0"
+    "wrangler": "^4.155.0"
   },
   "engines": {
     "node": ">=20.9"
+  },
+  "overrides": {
+    "@node-minify/core": {
+      "glob": "^10.5.0"
+    }
   }
 }

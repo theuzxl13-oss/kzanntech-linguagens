@@ -148,4 +148,14 @@ export function lessonStars(accuracy: number): number {
 }
 
 /** XP de lição: primeira conclusão vale mais; repetir para fixar rende um pouco (uma vez por dia). */
-export const LESSON_XP = { first: 25, repeat: 5 } as const;
+export const LESSON_XP = { first: 25, repeat: 5, dailyCap: 150 } as const;
+
+/** Número de exercícios gerados para uma lição com `items` itens (ver buildExercises). */
+export function exerciseCount(items: number): number {
+  return items * 2 + Math.min(5, items);
+}
+
+/** Tempo mínimo (s) entre iniciar e concluir uma lição: ~2 s por exercício, no mínimo 10 s. */
+export function minLessonSeconds(items: number): number {
+  return Math.max(10, exerciseCount(items) * 2);
+}

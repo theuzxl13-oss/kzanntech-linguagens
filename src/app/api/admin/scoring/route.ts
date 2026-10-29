@@ -1,12 +1,11 @@
 import { updateScoringRules } from "@/lib/server/admin";
 import { apiAdmin, requestMeta } from "@/lib/server/auth";
-import { badRequest } from "@/lib/server/errors";
-import { json, route } from "@/lib/server/http";
+import { json, parseJson, route } from "@/lib/server/http";
+import { z } from "zod";
 
 export const PUT = route(async (req) => {
   const admin = await apiAdmin();
-  const body = await req.json().catch(() => {
-    throw badRequest("invalid_json", "JSON inválido.");
-  });
+  // O conteúdo é validado por scoringRulesSchema dentro de updateScoringRules
+  const body = await parseJson(req, z.unknown());
   return json(await updateScoringRules(body, admin.id, await requestMeta()));
 });

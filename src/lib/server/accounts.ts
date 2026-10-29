@@ -4,7 +4,7 @@ import { query, queryOne, tx } from "./db";
 import { sendEmail } from "./email";
 import { badRequest, conflict, forbidden, unauthorized } from "./errors";
 import { audit } from "./events";
-import { hashPassword, verifyPassword } from "./password";
+import { hashPassword, needsRehash, verifyPassword } from "./password";
 import { enforceRateLimit } from "./rate-limit";
 import { createAuthSession, hashToken, newToken, revokeAllSessions } from "./session-store";
 
@@ -106,6 +106,10 @@ export async function login(input: z.infer<typeof loginSchema>, meta: Meta) {
   }
   if (!(await verifyPassword(input.password, user.password_hash))) throw unauthorized("E-mail ou senha incorretos.");
   if (user.status === "suspended") throw forbidden("Esta conta está suspensa. Entre em contato com o suporte.");
+  // Atualiza hashes antigos para os parâmetros atuais (a senha em texto só existe neste momento)
+  if (needsRehash(user.password_hash)) {
+    await query(`update users set password_hash = $2, updated_at = now() where id = $1`, [user.id, await hashPassword(input.password)]);
+  }
   return createAuthSession(user.id, meta);
 }
 
@@ -241,6 +245,8 @@ export async function deleteAccount(userId: string, input: z.infer<typeof delete
   }
   await tx(async (client) => {
     await audit(null, "account.deleted", { type: "user", id: userId }, undefined, meta.ip, client);
+    // Registros de e-mail não têm chave estrangeira para o usuário: removidos explicitamente
+    await client.query(`delete from email_outbox where to_email = (select email from users where id = $1)`, [userId]);
     await client.query(`delete from users where id = $1`, [userId]);
   });
 }

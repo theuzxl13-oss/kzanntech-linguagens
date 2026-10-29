@@ -1,4 +1,15 @@
+import { createHmac } from "node:crypto";
+import { config } from "./config";
 import { query } from "./db";
+
+/**
+ * As chaves combinam operação + identificador (IP, e-mail, id). Para não guardar dados pessoais
+ * em texto, o banco recebe apenas "operação:" + HMAC da chave completa.
+ */
+export function storedRateKey(key: string): string {
+  const op = key.split(":")[0].slice(0, 32);
+  return `${op}:${createHmac("sha256", config.authSecret).update(key).digest("hex").slice(0, 40)}`;
+}
 import { tooMany } from "./errors";
 
 /**
@@ -11,7 +22,7 @@ export async function hitRateLimit(key: string, limit: number, windowSeconds: nu
     `insert into rate_limits (key, window_start, count) values ($1, $2, 1)
      on conflict (key, window_start) do update set count = rate_limits.count + 1
      returning count`,
-    [key, windowStart],
+    [storedRateKey(key), windowStart],
   );
   // Limpeza oportunista de janelas antigas
   if (Math.random() < 0.01) {

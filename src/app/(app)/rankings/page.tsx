@@ -226,7 +226,7 @@ export default async function RankingsPage({ searchParams }: { searchParams: Pro
           </ul>
           {ranking.range.from && (
             <p className="mt-3 text-xs text-slate-500">
-              Período exibido: {formatDate(ranking.range.from)} — {ranking.range.to ? formatDate(ranking.range.to) : "agora"}
+              Período exibido: {formatDate(ranking.range.from, false, user.timezone)} — {ranking.range.to ? formatDate(ranking.range.to, false, user.timezone) : "agora"}
             </p>
           )}
         </Card>

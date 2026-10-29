@@ -214,12 +214,17 @@ export function formatPercent(v: number | null | undefined) {
   return `${Math.round(v * 100)}%`;
 }
 
-export function formatDate(d: Date | string, withTime = false) {
-  return new Intl.DateTimeFormat("pt-BR", {
+/** Formata datas no fuso do usuário (padrão: horário de Brasília). */
+export function formatDate(d: Date | string, withTime = false, timeZone = "America/Sao_Paulo") {
+  const opts: Intl.DateTimeFormatOptions = {
     day: "2-digit",
     month: "short",
     year: "numeric",
     ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
-    timeZone: "America/Sao_Paulo",
-  }).format(new Date(d));
+  };
+  try {
+    return new Intl.DateTimeFormat("pt-BR", { ...opts, timeZone }).format(new Date(d));
+  } catch {
+    return new Intl.DateTimeFormat("pt-BR", { ...opts, timeZone: "UTC" }).format(new Date(d));
+  }
 }

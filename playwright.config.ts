@@ -36,6 +36,8 @@ export default defineConfig({
       DATABASE_URL: E2E_DATABASE_URL,
       APP_URL: `http://localhost:${PORT}`,
       EMAIL_TRANSPORT: "log",
+      // Somente testes: permite capturar links de e-mail no build de produção
+      ALLOW_LOG_EMAIL_IN_PRODUCTION: "true",
       SPEECH_PROVIDER: "none",
       AUTH_SECRET: "e2e-secret-e2e-secret-e2e-secret-e2e-secret",
     },

@@ -64,6 +64,17 @@ export function LessonPlayer({ lesson, ttsRate }: { lesson: LessonData; ttsRate:
     grade(r.credit > 0, r.result === "correct" && !r.isAlternative ? null : r.feedback[0]);
   }
 
+  /** O servidor registra o início (a conclusão só é aceita para lições iniciadas). */
+  async function begin() {
+    setError(null);
+    try {
+      await api(`/api/lessons/${lesson.unitId}/start`, { method: "POST" });
+      setPhase("learn");
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Não foi possível iniciar a lição.");
+    }
+  }
+
   async function next() {
     if (pos + 1 < queue.length) {
       setPicked(null);
@@ -146,7 +157,12 @@ export function LessonPlayer({ lesson, ttsRate }: { lesson: LessonData; ttsRate:
             </Alert>
           )}
           <p className="mt-4 text-xs text-slate-500">Errou? Sem problema: o exercício volta no final da lição para você tentar de novo.</p>
-          <Button size="lg" className="mt-6 w-full" autoFocus onClick={() => setPhase("learn")}>
+          {error && (
+            <Alert tone="error" className="mt-4">
+              {error}
+            </Alert>
+          )}
+          <Button size="lg" className="mt-6 w-full" autoFocus onClick={begin}>
             Começar
           </Button>
         </Card>

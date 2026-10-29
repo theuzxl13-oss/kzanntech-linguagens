@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiUser } from "@/lib/server/auth";
+import { AUDIO_BODY_LIMIT, readBodyLimited } from "@/lib/server/body";
 import { badRequest } from "@/lib/server/errors";
 import { submitVoiceAttempt, voiceTranscriptSchema } from "@/lib/server/game/sessions";
 import { json, parseJson, route } from "@/lib/server/http";
@@ -17,9 +18,9 @@ export const POST = route(async (req, ctx: { params: Promise<{ id: string }> }) 
   const { id } = await ctx.params;
   const type = req.headers.get("content-type") ?? "";
   if (type.startsWith("multipart/form-data")) {
-    const len = Number(req.headers.get("content-length") ?? 0);
-    if (len > MAX_AUDIO_BYTES + 10_000) throw badRequest("audio_too_large", "Gravação longa demais (máx. ~60 s).");
-    const form = await req.formData();
+    // Lê com limite antes de interpretar o multipart (Content-Length pode estar ausente)
+    const raw = await readBodyLimited(req, AUDIO_BODY_LIMIT);
+    const form = await new Response(raw, { headers: { "content-type": type } }).formData();
     const meta = z
       .object({ idx: z.coerce.number().int().min(0).max(500), attempt: z.coerce.number().int().min(1).max(3) })
       .parse({ idx: form.get("idx"), attempt: form.get("attempt") });

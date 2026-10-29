@@ -42,7 +42,7 @@ export default async function AchievementsPage() {
                 </p>
                 <p className="text-sm text-slate-600">{a.description_pt}</p>
                 <p className="mt-1 text-xs font-semibold text-slate-500">
-                  {a.unlocked_at ? `✓ Desbloqueada em ${formatDate(a.unlocked_at)}` : "🔒 Bloqueada"}
+                  {a.unlocked_at ? `✓ Desbloqueada em ${formatDate(a.unlocked_at, false, user.timezone)}` : "🔒 Bloqueada"}
                   {a.xp_reward > 0 && ` · +${a.xp_reward} XP`}
                 </p>
               </div>

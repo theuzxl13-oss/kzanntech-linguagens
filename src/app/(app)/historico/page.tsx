@@ -39,7 +39,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
             <tbody className="divide-y divide-slate-100">
               {rows.map((s) => (
                 <tr key={s.id}>
-                  <td className="px-4 py-3 whitespace-nowrap">{formatDate(s.started_at, true)}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{formatDate(s.started_at, true, user.timezone)}</td>
                   <td className="px-2 py-3">
                     <Link href={s.status === "finished" ? `/resultado/${s.id}` : `/sessao/${s.id}`} className="font-semibold text-brand-700 hover:underline">
                       {s.flag} {s.mode === "voice" ? "Vozes" : `Digitação · ${FORMAT_LABELS[s.format] ?? s.format}`}

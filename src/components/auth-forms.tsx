@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api, ApiError } from "@/lib/client/api";
+import { safeInternalPath } from "@/lib/domain/safe-redirect";
 import { Checkbox, Field, Input } from "./forms";
 import { Alert, Button, Card } from "./ui";
 
 function safeNext(next: string | null) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+  return safeInternalPath(next, typeof window !== "undefined" ? window.location.origin : undefined);
 }
 
 function useFormState() {

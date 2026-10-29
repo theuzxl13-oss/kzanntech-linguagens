@@ -44,6 +44,9 @@ test("iniciante aprende do zero: trilha → lição 1 completa → próxima libe
     await page.getByRole("button", { name: /Próximo →|Praticar agora →/ }).click();
   }
 
+  // Simula o tempo de estudo: o servidor exige um tempo mínimo entre iniciar e concluir a lição
+  await db.query(`update lesson_attempts set started_at = now() - interval '10 minutes' where unit_id = $1`, [unitId]);
+
   // Prática: erra o primeiro exercício de propósito; ele precisa voltar no fim
   let n = 0;
   for (; n < 60; n++) {

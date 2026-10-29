@@ -1,6 +1,7 @@
 import "server-only";
 import { NextResponse, type NextRequest } from "next/server";
 import { ZodError, type ZodType } from "zod";
+import { JSON_BODY_LIMIT, readBodyLimited } from "./body";
 import { config } from "./config";
 import { HttpError, badRequest, forbidden } from "./errors";
 import { logEvent } from "./events";
@@ -30,9 +31,10 @@ export function assertSameOrigin(req: Request) {
 }
 
 export async function parseJson<T>(req: Request, schema: ZodType<T>): Promise<T> {
+  const raw = await readBodyLimited(req, JSON_BODY_LIMIT);
   let body: unknown;
   try {
-    body = await req.json();
+    body = JSON.parse(new TextDecoder().decode(raw));
   } catch {
     throw badRequest("invalid_json", "Corpo da requisição inválido.");
   }

@@ -592,14 +592,29 @@ export async function getItemAudio(userId: string, sessionId: string, idx: numbe
   return resolveItemAudio(row.item_id, row.text, row.locale, row.audio_source, rate);
 }
 
+/**
+ * O servidor só busca áudios em caminhos locais (/audio/...) ou em hosts explicitamente permitidos
+ * (AUDIO_ALLOWED_HOSTS, separados por vírgula) — evita que uma URL cadastrada vire SSRF.
+ */
+export function isAllowedAudioUrl(url: string, allowed = process.env.AUDIO_ALLOWED_HOSTS ?? ""): boolean {
+  if (url.startsWith("/") && !url.startsWith("//")) return true;
+  try {
+    const u = new URL(url);
+    const hosts = allowed.split(",").map((h) => h.trim().toLowerCase()).filter(Boolean);
+    return u.protocol === "https:" && hosts.includes(u.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
 export async function resolveItemAudio(itemId: number, text: string, locale: string, audioSource: string, rate = 1) {
   if (audioSource === "asset") {
     const asset = await queryOne<{ url: string }>(
       `select url from audio_assets where item_id = $1 and review_status <> 'archived' order by (review_status = 'approved') desc, id limit 1`,
       [itemId],
     );
-    if (asset) {
-      const res = await fetch(new URL(asset.url, config.appUrl), { signal: AbortSignal.timeout(8000) }).catch(() => null);
+    if (asset && isAllowedAudioUrl(asset.url)) {
+      const res = await fetch(new URL(asset.url, config.appUrl), { signal: AbortSignal.timeout(8000), redirect: "error" }).catch(() => null);
       if (res?.ok) return { audio: Buffer.from(await res.arrayBuffer()), contentType: res.headers.get("content-type") ?? "audio/mpeg" };
       await logEvent("warn", "audio.asset", "Falha ao carregar arquivo de áudio", { itemId, url: asset.url });
     }

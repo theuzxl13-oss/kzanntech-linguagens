@@ -1,3 +1,5 @@
+import { parseTrustProxy } from "./client-ip";
+
 /** Leitura centralizada de variáveis de ambiente do servidor (nunca expostas ao navegador). */
 export const config = {
   get appUrl() {
@@ -14,9 +16,16 @@ export const config = {
     }
     return s;
   },
+  /** Política de confiança em cabeçalhos de proxy para descobrir o IP do cliente (ver client-ip.ts). */
+  get trustProxy() {
+    return parseTrustProxy(process.env.TRUST_PROXY);
+  },
   get emailTransport(): "smtp" | "resend" | "log" | "disabled" {
     const t = process.env.EMAIL_TRANSPORT;
     if (t === "resend") return process.env.RESEND_API_KEY ? "resend" : "disabled";
+    // "log" grava o corpo dos e-mails (com links de redefinição de senha); nunca em produção.
+    // Exceção explícita só para testes E2E contra o build de produção (nunca em produção real).
+    if (t === "log" && process.env.NODE_ENV === "production" && process.env.ALLOW_LOG_EMAIL_IN_PRODUCTION !== "true") return "disabled";
     if (t === "smtp" || t === "log" || t === "disabled") return t;
     return process.env.NODE_ENV === "production" ? "disabled" : "log";
   },

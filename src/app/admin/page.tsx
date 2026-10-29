@@ -31,6 +31,14 @@ export default async function AdminHome() {
               🎙️ Avaliação de voz no servidor: {speech.server.available ? <strong className="text-emerald-700">{speech.server.label}</strong> : <strong className="text-amber-700">não configurada</strong>}
             </li>
             <li>📧 E-mail: <strong>{config.emailTransport}</strong></li>
+            <li>
+              🌐 IP do cliente (TRUST_PROXY): <strong>{config.trustProxy}</strong>
+              {config.trustProxy === "none" && config.isProduction && (
+                <span className="block text-amber-700">
+                  ⚠️ Em produção atrás de proxy/CDN, configure TRUST_PROXY; sem isso todos os acessos compartilham o mesmo limite por IP.
+                </span>
+              )}
+            </li>
             <li>🏁 Voz avaliada no navegador no ranking: <strong>{speech.clientRankedAllowed ? "permitida (marcada como não verificada)" : "bloqueada"}</strong></li>
           </ul>
         </Card>

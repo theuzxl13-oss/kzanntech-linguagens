@@ -82,3 +82,51 @@ test("limite de tentativas de cadastro por rede", async ({ request, baseURL }) =
   expect(last).toBe(429);
   await db.query("delete from rate_limits");
 });
+
+test.describe("Regressões da auditoria", () => {
+  test("SEC-02: login não redireciona para fora do site", async ({ page }) => {
+    const { signup } = await import("./helpers");
+    const u = await signup(page);
+    await page.context().clearCookies();
+    const external: string[] = [];
+    await page.context().route(/^https?:\/\/(?!localhost)/, (r) => {
+      external.push(r.request().url());
+      return r.fulfill({ status: 200, body: "externo" });
+    });
+    await page.goto("/entrar?next=" + encodeURIComponent("/\\evil.example/roubar"));
+    await page.getByLabel("E-mail").fill(u.email);
+    await page.getByLabel("Senha").fill(u.password);
+    await page.getByRole("button", { name: "Entrar" }).click();
+    await expect(page).toHaveURL(/\/painel/);
+    expect(external).toEqual([]);
+  });
+
+  test("SEC-03: corpo grande demais recebe 413", async ({ request, baseURL }) => {
+    const r = await request.post("/api/auth/login", {
+      data: `{"email":"${"a".repeat(200_000)}"}`,
+      headers: { origin: baseURL!, "content-type": "application/json" },
+    });
+    expect(r.status()).toBe(413);
+  });
+
+  test("SEC-01: X-Forwarded-For forjado não burla o limite por IP", async ({ request, baseURL }) => {
+    const { db } = await import("./helpers");
+    await db.query("delete from rate_limits");
+    const codes: number[] = [];
+    for (let i = 0; i < 11; i++) {
+      const r = await request.post("/api/auth/signup", {
+        data: { email: `xff${i}${Date.now()}@example.com`, password: "senha12345", nickname: `xff_${i}_${Date.now() % 100000}`, acceptTerms: true },
+        headers: { origin: baseURL!, "x-forwarded-for": `203.0.113.${i}` },
+      });
+      codes.push(r.status());
+    }
+    expect(codes[10]).toBe(429);
+    await db.query("delete from rate_limits");
+  });
+
+  test("SEC-05: cabeçalhos de segurança em produção", async ({ request }) => {
+    const r = await request.get("/");
+    expect(r.headers()["strict-transport-security"]).toContain("max-age=");
+    expect(r.headers()["cross-origin-opener-policy"]).toBe("same-origin");
+  });
+});

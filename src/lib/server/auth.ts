@@ -2,6 +2,7 @@ import "server-only";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { resolveClientIp } from "./client-ip";
 import { config } from "./config";
 import { forbidden, unauthorized } from "./errors";
 import { SESSION_COOKIE, SESSION_DAYS, resolveAuthSession, type CurrentUser } from "./session-store";
@@ -64,6 +65,6 @@ export async function currentSessionToken(): Promise<string | undefined> {
 
 export async function requestMeta() {
   const h = await headers();
-  const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? h.get("x-real-ip") ?? "local").trim();
+  const ip = resolveClientIp((n) => h.get(n), config.trustProxy);
   return { ip, userAgent: h.get("user-agent") };
 }
