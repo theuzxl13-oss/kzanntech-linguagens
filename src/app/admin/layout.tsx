@@ -11,6 +11,7 @@ const LINKS = [
   ["/admin/idiomas", "🌍 Idiomas e categorias"],
   ["/admin/temporadas", "🏆 Temporadas e pontuação"],
   ["/admin/usuarios", "👥 Usuários"],
+  ["/admin/assinaturas", "💎 Planos e assinaturas"],
   ["/admin/registros", "🧾 Registros"],
 ];
 

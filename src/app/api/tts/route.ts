@@ -17,6 +17,6 @@ export const GET = route(async (req) => {
     [itemId],
   );
   if (!item) throw notFound("Item não encontrado.");
-  const audio = await resolveItemAudio(itemId, item.text, item.locale, item.has_asset ? "asset" : "server_tts");
+  const audio = await resolveItemAudio(itemId, item.text, item.locale, item.has_asset ? "asset" : "server_tts", 1, user.id);
   return new Response(new Uint8Array(audio.audio), { headers: { "Content-Type": audio.contentType, "Cache-Control": "private, max-age=3600" } });
 });

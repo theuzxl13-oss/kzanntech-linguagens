@@ -10,5 +10,7 @@ export function applyTestEnv() {
     SPEECH_PROVIDER: "mock",
     VOICE_ALLOW_CLIENT_RANKED: "false",
     APP_URL: "http://localhost:3000",
+    BILLING_PROVIDER: "sandbox",
+    BILLING_WEBHOOK_SECRET: "test-billing-webhook-secret",
   });
 }

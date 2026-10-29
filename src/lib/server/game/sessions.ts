@@ -9,6 +9,7 @@ import { getAcceptedAnswers, getLanguage, getUserLanguageLevel, selectLanguage }
 import { query, queryOne, tx } from "../db";
 import { badRequest, conflict, forbidden, gone, notFound } from "../errors";
 import { logEvent } from "../events";
+import { consumeQuota } from "../entitlements";
 import { enforceRateLimit } from "../rate-limit";
 import { getScoringRules } from "../settings";
 import { getSpeechProvider, SpeechProviderError } from "../speech";
@@ -487,6 +488,8 @@ export async function submitVoiceAttempt(
     const provider = getSpeechProvider();
     if (!provider) throw conflict("speech_unavailable", "O serviço de avaliação de voz não está disponível no momento.");
     if (!input.audio) throw badRequest("audio_required", "Envie o áudio da tentativa.");
+    // Avaliação no servidor tem custo por uso: cota diária conforme o plano
+    await consumeQuota(userId, "voice_assessment");
     try {
       const a = await provider.assessPronunciation(input.audio.data, input.audio.contentType, itPre.text, lang.locale);
       const words: WordMatch[] = a.words
@@ -589,7 +592,7 @@ export async function getItemAudio(userId: string, sessionId: string, idx: numbe
     [sessionId, userId, idx],
   );
   if (!row || !row.served_at) throw notFound("Áudio indisponível.");
-  return resolveItemAudio(row.item_id, row.text, row.locale, row.audio_source, rate);
+  return resolveItemAudio(row.item_id, row.text, row.locale, row.audio_source, rate, userId);
 }
 
 /**
@@ -607,7 +610,7 @@ export function isAllowedAudioUrl(url: string, allowed = process.env.AUDIO_ALLOW
   }
 }
 
-export async function resolveItemAudio(itemId: number, text: string, locale: string, audioSource: string, rate = 1) {
+export async function resolveItemAudio(itemId: number, text: string, locale: string, audioSource: string, rate = 1, userId?: string) {
   if (audioSource === "asset") {
     const asset = await queryOne<{ url: string }>(
       `select url from audio_assets where item_id = $1 and review_status <> 'archived' order by (review_status = 'approved') desc, id limit 1`,
@@ -621,6 +624,8 @@ export async function resolveItemAudio(itemId: number, text: string, locale: str
   }
   const provider = getSpeechProvider();
   if (!provider) throw conflict("audio_unavailable", "Áudio indisponível no servidor.");
+  // Síntese no servidor tem custo por uso: cota diária conforme o plano (arquivos de áudio não contam)
+  if (userId) await consumeQuota(userId, "tts");
   try {
     return await provider.synthesize(text, locale, { rate });
   } catch (err) {

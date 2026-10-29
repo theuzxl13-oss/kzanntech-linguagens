@@ -409,3 +409,70 @@ export function UserActions({ id, status, role }: { id: string; status: string; 
     </div>
   );
 }
+
+export function GrantPremiumForm() {
+  const a = useAction();
+  const [email, setEmail] = useState("");
+  const [days, setDays] = useState(30);
+  const [reason, setReason] = useState("");
+  return (
+    <form
+      className="grid gap-2 sm:grid-cols-[2fr_1fr_3fr_auto]"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (await a.run(() => api("/api/admin/billing/grant", { body: { email, days, reason } }), "Premium concedido (registrado na auditoria).")) {
+          setEmail("");
+          setReason("");
+        }
+      }}
+    >
+      <label htmlFor="g-email" className="sr-only">E-mail do usuário</label>
+      <Input id="g-email" type="email" required placeholder="E-mail do usuário" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <label htmlFor="g-days" className="sr-only">Dias</label>
+      <Input id="g-days" type="number" min={1} max={3650} required value={days} onChange={(e) => setDays(Number(e.target.value))} />
+      <label htmlFor="g-reason" className="sr-only">Motivo</label>
+      <Input id="g-reason" required minLength={3} placeholder="Motivo (auditoria)" value={reason} onChange={(e) => setReason(e.target.value)} />
+      <Button type="submit" disabled={a.busy}>Conceder</Button>
+      {a.msg && <Alert tone={a.msg.tone} className="sm:col-span-4">{a.msg.text}</Alert>}
+    </form>
+  );
+}
+
+export function RevokeGrantButton({ id }: { id: string }) {
+  const a = useAction();
+  return (
+    <Button
+      size="sm"
+      variant="ghost"
+      disabled={a.busy}
+      onClick={() => confirm("Revogar esta concessão manual?") && a.run(() => api("/api/admin/billing/revoke", { body: { subscriptionId: id } }), "Revogado.")}
+    >
+      Revogar
+    </Button>
+  );
+}
+
+export function EntitlementsEditor({ initial }: { initial: unknown }) {
+  const a = useAction();
+  const [text, setText] = useState(JSON.stringify(initial, null, 2));
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(text);
+        } catch {
+          return alert("JSON inválido.");
+        }
+        await a.run(() => api("/api/admin/billing/entitlements", { method: "PUT", body: parsed }), "Limites salvos.");
+      }}
+      className="space-y-3"
+    >
+      <label htmlFor="ent" className="sr-only">Limites por plano (JSON)</label>
+      <Textarea id="ent" rows={16} className="font-mono text-xs" value={text} onChange={(e) => setText(e.target.value)} />
+      {a.msg && <Alert tone={a.msg.tone}>{a.msg.text}</Alert>}
+      <Button type="submit" disabled={a.busy}>Salvar limites</Button>
+    </form>
+  );
+}

@@ -88,6 +88,7 @@ export function LearningPath({
                     "flex h-full items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition",
                     l.status === "locked" ? "border-slate-200 bg-slate-50 opacity-60" : "border-slate-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md",
                     l.status === "available" && "border-brand-300 ring-2 ring-brand-100",
+                    l.status === "premium" && "border-amber-200 bg-amber-50/60",
                   )}
                 >
                   <span
@@ -97,7 +98,7 @@ export function LearningPath({
                     )}
                     aria-hidden="true"
                   >
-                    {l.status === "locked" ? "🔒" : l.icon}
+                    {l.status === "locked" ? "🔒" : l.status === "premium" ? "💎" : l.icon}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-slate-500">Lição {l.position}</p>
@@ -110,6 +111,7 @@ export function LearningPath({
                         </span>
                       )}
                       {l.status === "locked" && " · conclua a lição anterior"}
+                      {l.status === "premium" && " · disponível no Premium"}
                     </p>
                   </div>
                 </div>
@@ -118,6 +120,10 @@ export function LearningPath({
                 <li key={l.unitId}>
                   {l.status === "locked" ? (
                     <div aria-disabled="true">{body}</div>
+                  ) : l.status === "premium" ? (
+                    <Link href="/planos?recurso=licoes" className="block h-full" aria-label={`Lição ${l.position}: ${l.title} (disponível no plano Premium)`}>
+                      {body}
+                    </Link>
                   ) : (
                     <Link href={`/aprender/${l.unitId}`} className="block h-full" aria-label={`Lição ${l.position}: ${l.title}${l.status === "completed" ? " (concluída)" : ""}`}>
                       {body}

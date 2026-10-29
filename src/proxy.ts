@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 const SESSION_COOKIE = "kl_session";
-const PROTECTED = ["/painel", "/aprender", "/idiomas", "/jogar", "/sessao", "/resultado", "/rankings", "/conquistas", "/historico", "/vocabulario", "/perfil", "/admin"];
+const PROTECTED = ["/painel", "/aprender", "/idiomas", "/jogar", "/sessao", "/resultado", "/rankings", "/conquistas", "/historico", "/vocabulario", "/perfil", "/planos", "/estatisticas", "/assinatura", "/admin"];
 const AUTH_PAGES = ["/entrar", "/cadastro"];
 
 /**

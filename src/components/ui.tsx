@@ -228,3 +228,7 @@ export function formatDate(d: Date | string, withTime = false, timeZone = "Ameri
     return new Intl.DateTimeFormat("pt-BR", { ...opts, timeZone: "UTC" }).format(new Date(d));
   }
 }
+
+export function formatMoney(cents: number, currency: string) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(cents / 100);
+}

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { stopBillingForDeletedAccount } from "./billing/service";
 import { config } from "./config";
 import { query, queryOne, tx } from "./db";
 import { sendEmail } from "./email";
@@ -243,6 +244,8 @@ export async function deleteAccount(userId: string, input: z.infer<typeof delete
     const admins = await queryOne<{ n: number }>(`select count(*)::int as n from users where role = 'admin'`);
     if ((admins?.n ?? 0) <= 1) throw conflict("last_admin", "Você é o único administrador. Promova outro administrador antes de excluir a conta.");
   }
+  // Interrompe cobranças recorrentes no provedor antes de apagar os dados
+  await stopBillingForDeletedAccount(userId);
   await tx(async (client) => {
     await audit(null, "account.deleted", { type: "user", id: userId }, undefined, meta.ip, client);
     // Registros de e-mail não têm chave estrangeira para o usuário: removidos explicitamente
@@ -275,6 +278,11 @@ export async function exportAccountData(userId: string) {
     ),
     achievements: await query(`select achievement_code, unlocked_at from user_achievements where user_id = $1`, [userId]),
     xpEvents: await query(`select source, ref, amount, created_at from xp_events where user_id = $1 order by created_at`, [userId]),
-    note: "Gravações de voz não são armazenadas pelo KeyLingo; apenas o texto reconhecido e a nota de cada tentativa.",
+    subscriptions: await query(
+      `select plan_code, provider, status, current_period_start, current_period_end, cancel_at_period_end, canceled_at, created_at from subscriptions where user_id = $1 order by created_at`,
+      [userId],
+    ),
+    invoices: await query(`select amount_cents, currency, status, period_start, period_end, created_at from invoices where user_id = $1 order by created_at`, [userId]),
+    note: "Gravações de voz não são armazenadas pelo KeyLingo; apenas o texto reconhecido e a nota de cada tentativa. Dados de cartão ficam somente com o provedor de pagamento.",
   };
 }

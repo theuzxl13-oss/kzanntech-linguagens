@@ -11,6 +11,10 @@ export const RETENTION = {
   expiredTokensDays: 7,
   auditLogsDays: 365,
   staleLessonAttemptsDays: 2,
+  abandonedCheckoutsDays: 30,
+  usageCountersDays: 35,
+  // payment_events, invoices e subscriptions não são apagados aqui: são registros financeiros
+  // (prazo de guarda é decisão jurídica/contábil — ver docs/BILLING.md).
 } as const;
 
 export async function runMaintenance() {
@@ -25,5 +29,12 @@ export async function runMaintenance() {
   await run("auth_sessions", `delete from auth_sessions where expires_at < now()`, []);
   await run("audit_logs", `delete from audit_logs where created_at < now() - make_interval(days => $1)`, [RETENTION.auditLogsDays]);
   await run("lesson_attempts", `delete from lesson_attempts where started_at < now() - make_interval(days => $1)`, [RETENTION.staleLessonAttemptsDays]);
+  await run("checkout_sessions_expired", `update checkout_sessions set status = 'expired' where status = 'open' and expires_at < now()`, []);
+  await run(
+    "checkout_sessions",
+    `delete from checkout_sessions where status in ('expired','canceled') and created_at < now() - make_interval(days => $1)`,
+    [RETENTION.abandonedCheckoutsDays],
+  );
+  await run("usage_counters", `delete from usage_counters where day < current_date - $1::int`, [RETENTION.usageCountersDays]);
   return counts;
 }

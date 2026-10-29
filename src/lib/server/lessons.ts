@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { addDays, localDate } from "../domain/dates";
 import { LESSON_XP, buildPath, minLessonSeconds, type LessonData, type UnitForPath } from "../domain/lessons";
+import { lessonAllowed } from "../domain/entitlements";
 import { levelFromXp } from "../domain/scoring";
 import { PLAYABLE_STATUSES, getLanguage, getUserLanguageLevel } from "./content";
 import { query, queryOne, tx } from "./db";
+import { getEntitlements, planRequired } from "./entitlements";
 import { conflict, notFound } from "./errors";
 import { enforceRateLimit } from "./rate-limit";
 
@@ -24,7 +26,7 @@ async function unitsForPath(language: string): Promise<UnitForPath[]> {
 }
 
 export async function getLearningPath(userId: string, language: string) {
-  const [units, done, levelCode, levelOrder] = await Promise.all([
+  const [units, done, levelCode, levelOrder, ent] = await Promise.all([
     unitsForPath(language),
     query<{ unit_id: number; best_accuracy: number }>(`select unit_id, best_accuracy::float from user_lessons where user_id = $1`, [userId]),
     getUserLanguageLevel(userId, language),
@@ -32,10 +34,11 @@ export async function getLearningPath(userId: string, language: string) {
       `select lv.sort_order from levels lv where lv.code = coalesce((select level_code from user_languages where user_id = $1 and language_code = $2), 'A1')`,
       [userId, language],
     ),
+    getEntitlements(userId),
   ]);
   const completed = new Map(done.map((d) => [d.unit_id, d.best_accuracy]));
-  const lessons = buildPath(units, completed, levelOrder?.sort_order ?? 1);
-  return { levelCode, lessons };
+  const lessons = buildPath(units, completed, levelOrder?.sort_order ?? 1, (level) => lessonAllowed(level, ent.limits));
+  return { levelCode, lessons, tier: ent.tier };
 }
 
 export async function getLesson(userId: string, unitId: number): Promise<LessonData | null> {
@@ -48,6 +51,7 @@ export async function getLesson(userId: string, unitId: number): Promise<LessonD
   const { lessons } = await getLearningPath(userId, unit.language_code);
   const idx = lessons.findIndex((l) => l.unitId === unitId);
   if (idx === -1 || lessons[idx].status === "locked") return null;
+  if (lessons[idx].status === "premium") throw planRequired("Esta lição faz parte do plano Premium.", "lessons");
   const items = await query<{ id: number; text: string; translation: string; explanation: string | null; kind: string; alt_target: string[]; alt_pt: string[] }>(
     `select i.id, i.text, i.translation_pt as translation, i.explanation, i.kind,
             coalesce((select array_agg(a.answer) from accepted_answers a where a.item_id = i.id and a.direction = 'to_target' and not a.is_primary), '{}') as alt_target,

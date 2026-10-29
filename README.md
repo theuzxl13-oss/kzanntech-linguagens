@@ -26,6 +26,7 @@ Para publicar: **Settings → Pages → Build and deployment → Source: GitHub 
 | Jogo com Vozes | Ouvir referência, gravar, transcrição, nota, palavras destacadas, dicas, até 3 tentativas; consentimento do microfone; avaliação de pronúncia real no servidor (Azure) **ou** avaliação aproximada do navegador, claramente rotulada |
 | Progresso | XP e níveis, sequência de dias, tempo de estudo, itens aprendidos, taxa de acerto, gráfico de evolução, histórico e recordes, conquistas, desafios diários, meta semanal, recomendações, revisão espaçada (SM-2) e vocabulário com áudio |
 | Rankings | Digitação, Vozes e Geral; filtros por idioma e período (semana, temporada, todos os tempos, temporadas encerradas); evolução de posição; ligas Bronze → Mestre; temporadas mensais com histórico congelado |
+| Planos e assinaturas | Grátis (trilha A1–A2 e todos os jogos) e Premium (todos os níveis, mais cota de voz/áudio no servidor, estatísticas detalhadas); checkout no servidor, ativação só por webhook assinado e idempotente, cancelamento ao fim do período, histórico de cobranças, concessão manual auditada. **Somente provedor simulado (sandbox) por enquanto** — ver [docs/BILLING.md](docs/BILLING.md) |
 | Admin | Métricas, CRUD de conteúdo com respostas alternativas, revisão (rascunho/pendente/aprovado/arquivado), áudios, idiomas, categorias, temporadas, regras de pontuação versionadas, moderação de usuários e registros (erros, auditoria, e-mails) |
 
 ## Stack
@@ -94,10 +95,12 @@ docs/                  Arquitetura, pontuação, implantação
 - [Arquitetura, modelo de dados e segurança](docs/ARCHITECTURE.md)
 - [Fórmulas de pontuação, XP, rankings e ligas](docs/SCORING.md)
 - [Cloudflare (passo a passo), Supabase, serviços de áudio, e-mail e testes](docs/DEPLOY.md)
+- [Planos, assinaturas e cobrança](docs/BILLING.md)
+- [Auditoria técnica e correções](docs/AUDIT.md)
 
 ## Testes
 
-Última execução: **44 unitários, 28 de integração (PostgreSQL 16) e 14 E2E (Chromium desktop + Pixel 7) — todos passando.** Os 14 E2E passam tanto no build Node.js (`next start`) quanto no runtime do Cloudflare Workers (`wrangler dev`, com Hyperdrive apontando para PostgreSQL local).
+Última execução: **80 unitários, 48 de integração (PostgreSQL 16) e 22 E2E (Chromium desktop + Pixel 7) — todos passando** no build Node.js (`next start`). Uma rodada anterior dos E2E também passou no runtime do Cloudflare Workers (`wrangler dev`).
 
 Cobrem: cadastro/login/recuperação/verificação, escolha de idioma, os três formatos de digitação, voz (provedor simulado no servidor e reconhecimento do navegador simulado), microfone negado, cálculo de pontuação, XP decrescente, níveis, rankings individuais e geral, temporadas, segurança de rotas, CSRF, rate limit, envio duplicado, manipulação de pontuação, sessão interrompida, resposta vazia, áudio indisponível e responsividade.
 
@@ -108,6 +111,7 @@ Cobrem: cadastro/login/recuperação/verificação, escolha de idioma, os três 
 - Algumas lições da trilha são curtas (1–2 itens) porque o conteúdo inicial tem poucos itens em certos temas/níveis; ampliar o conteúdo pelo painel admin resolve.
 - **O conteúdo inicial não é verificado:** 71 conceitos × 5 idiomas (355 itens) foram redigidos com apoio de IA e estão marcados como *pendentes de revisão*. Precisam ser revisados por professores/nativos no painel admin. Não há gravações humanas; o áudio é sintético. Faltam frases de exemplo na maioria dos itens.
 - Política de Privacidade e Termos são modelos que exigem revisão jurídica e os dados do controlador.
+- **Pagamentos:** só existe o provedor simulado (sandbox). Integrar um provedor real exige escolher o provedor, credenciais e decisões de preço/impostos/reembolso (ver docs/BILLING.md).
 - Login social não foi implementado. O e-mail exige Resend (Cloudflare) ou SMTP (Node.js) configurado em produção.
 - **Cloudflare:** o hash de senha (scrypt) usa ~50 ms de CPU e o plano gratuito dos Workers permite 10 ms por requisição; use o plano **Workers Paid**. O deploy real no Cloudflare não foi executado (precisa da sua conta); foi validado no runtime local `workerd`.
 - O rate limit usa o banco (janela fixa) e o IP de `X-Forwarded-For`: configure o proxy/CDN para sobrescrever esse cabeçalho.

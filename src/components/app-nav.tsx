@@ -100,6 +100,8 @@ export function UserMenu({ nickname, avatar, isAdmin }: { nickname: string; avat
               ["/historico", "🕘 Histórico"],
               ["/conquistas", "🏅 Conquistas"],
               ["/vocabulario", "📖 Vocabulário"],
+              ["/estatisticas", "📊 Estatísticas"],
+              ["/planos", "💎 Plano e assinatura"],
               ["/idiomas", "🌍 Trocar idioma"],
               ...(isAdmin ? [["/admin", "🛠️ Administração"]] : []),
             ].map(([href, label]) => (

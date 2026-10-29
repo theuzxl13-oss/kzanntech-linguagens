@@ -148,3 +148,23 @@ Gravidade considerando impacto e explorabilidade no contexto atual (aplicação 
 | DEP-01 | ✅ corrigido | `wrangler` 4.155.0, `@opennextjs/cloudflare` 1.20.14, override `glob@^10.5.0` em `@node-minify/core` → `npm audit`: **0 vulnerabilidades**. Build OpenNext e preview `workerd` verificados | `npm audit`, `cf:build`, `wrangler dev` |
 | CI-01 | ⏳ P4 | — | — |
 | CONT-01 | ⏳ P3 (exige revisores humanos) | — | — |
+
+## 6. P2 — Planos, assinaturas e controle de acesso
+
+Implementado com provedor **sandbox** apenas (detalhes e regras em [BILLING.md](BILLING.md)).
+
+| Requisito | Como foi atendido | Verificação |
+|---|---|---|
+| Assinatura só por pagamento confirmado no servidor | checkout criado no servidor; Premium só após webhook `checkout.completed` autenticado | integração "criar checkout ou voltar da página de pagamento não concede nada"; E2E (retorno sem pagar continua Grátis) |
+| Webhook autenticado, sem replay | HMAC-SHA256 do corpo bruto + janela de 5 min, comparação em tempo constante | unit (6 casos); integração; E2E (forjado/antigo/provedor desconhecido → 400) |
+| Idempotência e concorrência | `unique (provider, event_id)`; advisory lock por assinatura | integração: 6 entregas paralelas → 1 processada, 5 duplicadas |
+| Eventos fora de ordem | `last_event_at` + eventos `deferred` reaplicados | integração "eventos fora de ordem" |
+| Falha de pagamento, tolerância, renovação, cancelamento | estados `past_due`/`canceled`, acesso até o fim do período | integração (2 testes) e E2E |
+| Controle de acesso centralizado | `getEntitlements()`; lições acima do nível do plano → `402 plan_required`; cotas diárias atômicas de voz/TTS → `429 plan_limit`; estatísticas detalhadas | integração (cota sob concorrência: 10 pedidos, limite 3 → 3 aceitos) |
+| Sem dados de cartão | só IDs do provedor, status e valores | revisão do esquema |
+| Concessão manual auditada | `/admin/assinaturas` + `audit_logs` | integração |
+| Sandbox nunca em produção | `getPaymentProvider()` exige flag explícita de teste | unit |
+
+Multi-tenancy (escolas/empresas com várias contas): **não implementado de propósito**. Não há demanda demonstrada; o modelo atual (assinatura individual) não impede adicionar depois uma tabela `organizations` com assentos. Recomendação: decidir após validar o produto com usuários individuais.
+
+Pendente (exige decisão/credenciais): provedor real, preços finais, impostos, reembolso e política de arrependimento — ver BILLING.md.

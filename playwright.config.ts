@@ -39,6 +39,10 @@ export default defineConfig({
       // Somente testes: permite capturar links de e-mail no build de produção
       ALLOW_LOG_EMAIL_IN_PRODUCTION: "true",
       SPEECH_PROVIDER: "none",
+      // Somente testes: pagamentos simulados no build de produção
+      BILLING_PROVIDER: "sandbox",
+      ALLOW_SANDBOX_BILLING_IN_PRODUCTION: "true",
+      BILLING_WEBHOOK_SECRET: "e2e-billing-webhook-secret",
       AUTH_SECRET: "e2e-secret-e2e-secret-e2e-secret-e2e-secret",
     },
   },

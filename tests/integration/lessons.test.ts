@@ -8,6 +8,7 @@ async function startAndWait(userId: string, unitId: number) {
   await startLesson(userId, unitId);
   await query(`update lesson_attempts set started_at = now() - interval '10 minutes' where user_id = $1 and unit_id = $2`, [userId, unitId]);
 }
+import { grantManualPremium } from "../../src/lib/server/billing/service";
 import { makeUser } from "./helpers";
 
 describe("Trilha de aprendizado", () => {
@@ -18,7 +19,8 @@ describe("Trilha de aprendizado", () => {
     expect(lessons.length).toBeGreaterThan(5);
     expect(lessons[0].status).toBe("available");
     expect(lessons[0].level).toBe("A1");
-    expect(lessons.slice(1).every((l) => l.status === "locked")).toBe(true);
+    // Lições seguintes: bloqueadas até concluir a anterior; acima de A2, exigem o Premium (plano Grátis)
+    expect(lessons.slice(1).every((l) => l.status === (["A1", "A2"].includes(l.level) ? "locked" : "premium"))).toBe(true);
     expect(await getLesson(u.id, lessons[1].unitId)).toBeNull();
     const lesson = await getLesson(u.id, lessons[0].unitId);
     expect(lesson!.items.length).toBeGreaterThan(0);
@@ -70,6 +72,7 @@ describe("Trilha de aprendizado", () => {
 
   it("INT-01: concluir exige início registrado e tempo mínimo; XP de lições tem teto diário", async () => {
     const u = await makeUser();
+    await grantManualPremium({ userId: u.id, days: 1, reason: "teste: todas as lições" }, u.id, null);
     await selectLanguage(u.id, "en", "C1"); // libera todas as lições
     const { lessons } = await getLearningPath(u.id, "en");
     await expect(completeLesson(u.id, lessons[0].unitId, 1)).rejects.toMatchObject({ code: "lesson_not_started" });

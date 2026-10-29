@@ -31,7 +31,8 @@ export interface LessonData {
   nextUnitId: number | null;
 }
 
-export type LessonStatus = "completed" | "available" | "locked";
+/** "premium": lição fora do que o plano atual libera (ver domain/entitlements.ts). */
+export type LessonStatus = "completed" | "available" | "locked" | "premium";
 
 export interface PathLesson {
   unitId: number;
@@ -56,13 +57,25 @@ export interface UnitForPath {
 /**
  * Desbloqueio: a primeira lição está sempre disponível; as demais liberam quando a anterior é concluída.
  * Lições de nível abaixo do nível declarado pelo aluno ficam disponíveis (ele já domina a base).
+ * Lições de nível não liberado pelo plano (`levelAllowed`) aparecem como "premium".
  */
-export function buildPath(units: UnitForPath[], completed: Map<number, number>, userLevelOrder: number): PathLesson[] {
+export function buildPath(
+  units: UnitForPath[],
+  completed: Map<number, number>,
+  userLevelOrder: number,
+  levelAllowed: (level: string) => boolean = () => true,
+): PathLesson[] {
   const lessons: PathLesson[] = [];
   units.forEach((u, i) => {
     const done = completed.has(u.unitId);
     const prevDone = i === 0 || completed.has(units[i - 1].unitId);
-    const status: LessonStatus = done ? "completed" : prevDone || u.levelOrder < userLevelOrder ? "available" : "locked";
+    const status: LessonStatus = !levelAllowed(u.level)
+      ? "premium"
+      : done
+        ? "completed"
+        : prevDone || u.levelOrder < userLevelOrder
+          ? "available"
+          : "locked";
     lessons.push({
       unitId: u.unitId,
       title: u.title,
