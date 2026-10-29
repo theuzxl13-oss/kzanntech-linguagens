@@ -43,7 +43,7 @@ Preços iniciais da migração (R$ 29,90/mês, R$ 239,90/ano) são **exemplos**:
 
 ```bash
 BILLING_PROVIDER=sandbox
-BILLING_WEBHOOK_SECRET=qualquer-valor-local   # opcional; sem ele, é derivado do AUTH_SECRET
+BILLING_WEBHOOK_SECRET=<valor-aleatório>      # opcional; sem ele, é derivado do AUTH_SECRET
 ```
 
 O "checkout hospedado" é `/assinatura/sandbox`, claramente marcado como pagamento simulado. Aprovar gera eventos **assinados** que passam pela mesma verificação dos webhooks reais. Na página de planos há botões para simular renovação, falha de pagamento e encerramento.

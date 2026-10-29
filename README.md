@@ -97,6 +97,7 @@ docs/                  Arquitetura, pontuação, implantação
 - [Cloudflare (passo a passo), Supabase, serviços de áudio, e-mail e testes](docs/DEPLOY.md)
 - [Planos, assinaturas e cobrança](docs/BILLING.md)
 - [Auditoria técnica e correções](docs/AUDIT.md)
+- [Operação, monitoramento e CI](docs/OPERATIONS.md) · [Privacidade e retenção](docs/PRIVACY.md)
 
 ## Testes
 
@@ -114,8 +115,8 @@ Cobrem: cadastro/login/recuperação/verificação, escolha de idioma, os três 
 - **Pagamentos:** só existe o provedor simulado (sandbox). Integrar um provedor real exige escolher o provedor, credenciais e decisões de preço/impostos/reembolso (ver docs/BILLING.md).
 - Login social não foi implementado. O e-mail exige Resend (Cloudflare) ou SMTP (Node.js) configurado em produção.
 - **Cloudflare:** o hash de senha (scrypt) usa ~50 ms de CPU e o plano gratuito dos Workers permite 10 ms por requisição; use o plano **Workers Paid**. O deploy real no Cloudflare não foi executado (precisa da sua conta); foi validado no runtime local `workerd`.
-- O rate limit usa o banco (janela fixa) e o IP de `X-Forwarded-For`: configure o proxy/CDN para sobrescrever esse cabeçalho.
+- O rate limit usa o banco (janela fixa) e o IP do proxy confiável definido em `TRUST_PROXY`.
 - A CSP usa `'unsafe-inline'` para scripts (padrão do Next sem nonce).
-- Não há limpeza agendada de `rate_limits`, `app_events` e tokens expirados além da limpeza oportunista; agende uma tarefa (ver DEPLOY.md).
+- A limpeza (`npm run db:maintenance`) existe, mas precisa ser agendada no ambiente de produção (ver docs/OPERATIONS.md).
 - Detecção avançada de fraude (bots, contas múltiplas) não existe além das proteções descritas em ARCHITECTURE.md.
 - Sem tema escuro.

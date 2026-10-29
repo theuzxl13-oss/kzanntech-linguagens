@@ -20,8 +20,12 @@ export default function Privacy() {
             <li><strong>Preferências:</strong> idioma estudado, nível, fuso horário, configurações de áudio e de privacidade.</li>
             <li><strong>Aprendizado:</strong> sessões de jogo, respostas digitadas, texto reconhecido nas tentativas de fala, notas, XP, conquistas e histórico de revisão.</li>
             <li><strong>Segurança:</strong> endereço IP e navegador associados às sessões de login, registros de auditoria e limites de tentativas.</li>
+            <li>
+              <strong>Assinatura (se você assinar o Premium):</strong> plano, status, datas do período, valores cobrados e identificadores fornecidos pelo
+              provedor de pagamento. <strong>Não recebemos nem armazenamos dados de cartão</strong>: eles ficam somente com o provedor de pagamento.
+            </li>
           </ul>
-          <p className="mt-2">Não coletamos dados de pagamento, localização, contatos nem usamos cookies de publicidade. O único cookie é o de sessão (essencial, httpOnly).</p>
+          <p className="mt-2">Não coletamos localização nem contatos e não usamos cookies de publicidade. O único cookie é o de sessão (essencial, httpOnly).</p>
         </section>
         <section>
           <h2>2. Como a sua voz é processada</h2>
@@ -49,13 +53,14 @@ export default function Privacy() {
             <li>Processar sua voz no Jogo com Vozes (consentimento).</li>
             <li>Segurança, prevenção de fraudes nos rankings e auditoria (legítimo interesse).</li>
             <li>E-mails transacionais de verificação e recuperação de senha (execução de contrato).</li>
+            <li>Gestão da assinatura e cobrança (execução de contrato) e guarda de registros financeiros (obrigação legal, prazo a definir).</li>
           </ul>
         </section>
         <section>
           <h2>4. Compartilhamento</h2>
           <p>
             Nos rankings aparecem apenas apelido, avatar e pontuação — nunca e-mail. Você pode ocultar seu perfil dos rankings. Prestadores que podem receber
-            dados: provedor de hospedagem e banco de dados, provedor de e-mail transacional e, se configurado, Microsoft Azure AI Speech.
+            dados: provedor de hospedagem e banco de dados, provedor de e-mail transacional, provedor de pagamento (para quem assina) e, se configurado, Microsoft Azure AI Speech.
           </p>
         </section>
         <section>
@@ -64,7 +69,8 @@ export default function Privacy() {
             <li>Áudio de voz: não é armazenado.</li>
             <li>Dados de conta e aprendizado: enquanto a conta existir.</li>
             <li>Tokens de verificação/redefinição: expiram em até 3 dias; sessões de login em 30 dias de inatividade.</li>
-            <li>Registros técnicos: recomendação de até 90 dias.</li>
+            <li>Registros técnicos: até 90 dias; e-mails enviados: 30 dias; auditoria: 1 ano.</li>
+            <li>Registros de assinatura e cobrança: pelo prazo exigido pela legislação fiscal/contábil (a definir).</li>
           </ul>
         </section>
         <section>

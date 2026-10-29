@@ -1,0 +1,96 @@
+# Integração contínua: lint, tipos, testes (unitários, integração com PostgreSQL descartável, E2E),
+# build, auditoria de dependências, varredura de segredos e análise estática (CodeQL).
+# Não faz deploy e não usa segredos do repositório.
+name: CI
+
+on:
+  push:
+    branches: [main, claude/quirky-johnson-r68juo]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, tipos, unitários, auditoria e segredos
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - name: Auditoria de dependências
+        run: npm audit --audit-level=high
+      - name: Varredura de segredos
+        run: node scripts/check-secrets.mjs
+      - name: Demo estática compila
+        run: npm run demo:build
+
+  integration-e2e:
+    name: Integração, build e E2E (PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: keylingo
+          POSTGRES_PASSWORD: keylingo
+          POSTGRES_DB: keylingo_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U keylingo" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # Banco descartável do próprio job; nenhum segredo real
+      TEST_DATABASE_URL: postgresql://keylingo:keylingo@localhost:5432/keylingo_test
+      E2E_DATABASE_URL: postgresql://keylingo:keylingo@localhost:5432/keylingo_e2e
+      DATABASE_URL: postgresql://keylingo:keylingo@localhost:5432/keylingo_e2e
+      AUTH_SECRET: ci-only-secret-ci-only-secret-ci-only-secret
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Cria o banco do E2E
+        run: psql postgresql://keylingo:keylingo@localhost:5432/keylingo_test -c "create database keylingo_e2e"
+      - run: npm run test:integration
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  codeql:
+    name: Análise estática (CodeQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - uses: github/codeql-action/analyze@v3

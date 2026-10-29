@@ -146,7 +146,7 @@ Gravidade considerando impacto e explorabilidade no contexto atual (aplicação 
 | OPS-01 | ✅ corrigido | `src/lib/server/maintenance.ts` + `npm run db:maintenance` (retenção documentada) | executado no banco de desenvolvimento |
 | R-05 | ✅ mitigado | servidor só busca áudio em `/audio/...` ou hosts de `AUDIO_ALLOWED_HOSTS`, sem seguir redirecionamentos | unit |
 | DEP-01 | ✅ corrigido | `wrangler` 4.155.0, `@opennextjs/cloudflare` 1.20.14, override `glob@^10.5.0` em `@node-minify/core` → `npm audit`: **0 vulnerabilidades**. Build OpenNext e preview `workerd` verificados | `npm audit`, `cf:build`, `wrangler dev` |
-| CI-01 | ⏳ P4 | — | — |
+| CI-01 | ✅ corrigido (P4) | `ci.yml` (lint, tipos, unit, integração com Postgres descartável, build, E2E, `npm audit`, varredura de segredos, CodeQL); `demo-pages.yml` com escrita só no job de publicação | execução no GitHub Actions |
 | CONT-01 | 🟡 parcial (P3) | procedência `origin` (IA/humano/importado), restrição no banco "aprovado exige revisor", painel de progresso editorial, aviso ao aluno quando a lição tem itens não revisados. **A revisão em si exige professores/nativos** | integração `onboarding-content.test.ts` |
 
 ## 6. P2 — Planos, assinaturas e controle de acesso
