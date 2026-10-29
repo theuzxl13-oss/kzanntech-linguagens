@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               aria-label={lang ? `Idioma atual: ${lang.name_pt}. Trocar idioma` : "Escolher idioma"}
             >
               <span aria-hidden="true">{lang?.flag ?? "🌍"}</span>
-              <span className="hidden sm:inline">{lang?.name_pt ?? "Idioma"}</span>
+              <span className="hidden sm:inline lg:hidden xl:inline">{lang?.name_pt ?? "Idioma"}</span>
             </Link>
             <UserMenu nickname={user.nickname} isAdmin={user.role === "admin"} avatar={<Avatar avatar={user.avatar} color={user.avatarColor} size="sm" label={`Avatar de ${user.nickname}`} />} />
           </div>

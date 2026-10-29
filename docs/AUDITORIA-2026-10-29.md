@@ -23,6 +23,7 @@ Principais riscos restantes, que dependem de terceiros ou de decisão de produto
 | ID | Gravidade | Categoria | Arquivo / local | Evidência | Como reproduzir | Impacto | Correção | Teste de validação | Resultado |
 |---|---|---|---|---|---|---|---|---|---|
 | AUD-01a | **Média** | UI / responsividade | `src/components/app-nav.tsx` (`md:flex`), `src/app/(app)/layout.tsx` | varredura em 768 px: rolagem horizontal de **212 px** em todas as 14 páginas logadas; o menu do usuário ficava fora da tela (sobrava de 768 a ~1000 px) | abrir qualquer página logada com 768–1000 px de largura | em tablets, o menu da conta (perfil, sair) ficava inacessível sem rolar de lado | navegação completa só a partir de `lg` (1024 px); abaixo disso, barra inferior | `tests/e2e/responsive.spec.ts` (320/375/768/900/1024 px × 9 páginas) | ✅ corrigido |
+| AUD-01e | Média | UI / responsividade | `src/app/(app)/layout.tsx`, `src/components/app-nav.tsx` | o CI do GitHub falhou com **48 px** de rolagem em `/painel` a 1024 px; medição local: folga **zero** no cabeçalho (661 + 303 + 12 = 976 px de 976) | abrir o painel a 1024 px num sistema com fontes um pouco mais largas | o cabeçalho quebrava dependendo da fonte do sistema | entre 1024 e 1279 px, idioma e conta mostram só bandeira e avatar (nomes a partir de 1280 px); folga de 189 px em 1024 e 123 px em 1280 | E2E de responsividade ampliado para 1280 px | ✅ |
 | AUD-01b | Baixa | UI / responsividade | `src/components/session-setup.tsx` (grade "Atividades por tema") | **37 px** de rolagem em 375 px e **92 px** em 320 px | `/jogar/digitar` num celular estreito | cartões e botões "Praticar" cortados | `grid-cols-1` (`minmax(0,1fr)`) | mesmo E2E | ✅ |
 | AUD-01c | Baixa | UI / responsividade | `src/components/learning-path.tsx` (grade de lições) | **14 px** em 320 px | `/aprender` em 320 px | cartões de lição cortados | `grid-cols-1` | mesmo E2E | ✅ |
 | AUD-01d | Baixa | UI / responsividade | `src/components/profile-forms.tsx` | **56 px** em 320 px; o e-mail longo, sem quebra de linha, empurrava todos os cartões, inclusive "Excluir conta" | `/perfil` em 320 px | formulários do perfil cortados | `grid-cols-1`, `min-w-0` e `break-all` no e-mail | mesmo E2E | ✅ |
@@ -74,6 +75,7 @@ Diff revisado integralmente. A refatoração da meta semanal preserva a ordem de
 | `VITEST_SUITE=integration npx vitest run` | **64/64** (antes: 62) |
 | `npm run build` | ok |
 | `npx playwright test` | **25/25** (antes: 24) |
+| CI do GitHub (execução nº 5, commit `a44e242`) | **falhou** no E2E de responsividade em 1024 px (AUD-01e); corrigido no commit seguinte |
 | `npm run demo:build` | ok |
 | `npm audit` | 0 vulnerabilidades |
 | `node scripts/check-secrets.mjs` | nenhum segredo |

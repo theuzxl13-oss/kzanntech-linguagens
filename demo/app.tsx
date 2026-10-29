@@ -132,7 +132,7 @@ function AppShell({ s, children }: { s: DemoState; children: ReactNode }) {
           <div className="flex items-center gap-2">
             <Link href="/idiomas" className="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
               <span aria-hidden="true">{lang?.flag ?? "🌍"}</span>
-              <span className="hidden sm:inline">{lang?.name_pt ?? "Idioma"}</span>
+              <span className="hidden sm:inline lg:hidden xl:inline">{lang?.name_pt ?? "Idioma"}</span>
             </Link>
             <UserMenu nickname={s.user!.nickname} isAdmin={false} avatar={<Avatar avatar={s.user!.avatar} color={s.user!.avatarColor} size="sm" />} />
           </div>

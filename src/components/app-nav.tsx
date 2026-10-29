@@ -86,7 +86,8 @@ export function UserMenu({ nickname, avatar, isAdmin }: { nickname: string; avat
         className="flex items-center gap-2 rounded-full p-1 pr-3 hover:bg-slate-100"
       >
         {avatar}
-        <span className="hidden max-w-32 truncate text-sm font-semibold text-slate-700 sm:inline">{nickname}</span>
+        {/* Entre 1024 e 1279 px a navegação completa ocupa o cabeçalho: só o avatar aparece */}
+        <span className="hidden max-w-32 truncate text-sm font-semibold text-slate-700 sm:inline lg:hidden xl:inline">{nickname}</span>
         <span aria-hidden="true" className="text-xs text-slate-500">
           ▾
         </span>
