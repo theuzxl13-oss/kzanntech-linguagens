@@ -4,6 +4,7 @@ import { XpChart } from "@/components/xp-chart";
 import { Alert, ButtonLink, Card, EmptyState, LeagueBadge, ProgressBar, SectionTitle, Stat, formatDuration, formatPercent } from "@/components/ui";
 import { requireUser } from "@/lib/server/auth";
 import { getDashboard } from "@/lib/server/dashboard";
+import { listMissions } from "@/lib/server/missions";
 
 export const metadata: Metadata = { title: "Painel" };
 
@@ -19,7 +20,10 @@ function greeting(timeZone: string) {
 
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
   const user = await requireUser();
-  const d = await getDashboard(user);
+  const [d, missions] = await Promise.all([getDashboard(user), user.currentLanguage ? listMissions(user.id, user.currentLanguage) : null]);
+  const allMissions = missions?.regions.flatMap((r) => r.missions) ?? [];
+  const nextMission = allMissions.find((m) => m.inProgress) ?? allMissions.find((m) => m.status === "available") ?? null;
+  const lockedMission = !nextMission ? allMissions.find((m) => m.status === "locked") : null;
   const sp = await searchParams;
   const lang = d.currentLanguage;
 
@@ -73,6 +77,23 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           )}
         </div>
       </section>
+
+      {(nextMission || lockedMission) && (
+        <section aria-labelledby="missao-dia" className="flex flex-col gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 id="missao-dia" className="font-bold text-slate-900">
+              <span aria-hidden="true">🧭 </span>
+              {nextMission ? `Missão: ${nextMission.title}` : `Próxima missão: ${lockedMission!.title}`}
+            </h2>
+            <p className="text-sm text-slate-700">
+              {nextMission ? nextMission.objectivePt : `Para desbloquear: ${lockedMission!.unlockHint}.`}
+            </p>
+          </div>
+          <ButtonLink href="/missoes" variant={nextMission ? "primary" : "secondary"}>
+            {nextMission?.inProgress ? "Continuar missão" : nextMission ? "Ver missão" : "Ver missões"}
+          </ButtonLink>
+        </section>
+      )}
 
       <section aria-label="Resumo" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <div className="col-span-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:col-span-1">

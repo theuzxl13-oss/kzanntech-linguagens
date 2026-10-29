@@ -1,6 +1,8 @@
 import "./env";
 import type { PoolClient } from "pg";
 import { ACHIEVEMENTS, CATEGORIES, CONCEPTS, CONTENT_SOURCE, LANGUAGES, LEVELS, type Translation } from "../db/seed/content";
+import { MISSION_SOURCE, MISSION_SPECS, MISSIONS } from "../db/seed/missions";
+import { validateMissionSpec } from "../src/lib/domain/missions";
 import { closePool, tx } from "../src/lib/server/db";
 import { hashPassword } from "../src/lib/server/password";
 import { monthNamePt, startOfMonthUtc, startOfNextMonthUtc } from "../src/lib/domain/dates";
@@ -77,6 +79,7 @@ export async function seedCatalog(client: PoolClient, log = console.log) {
     }
   }
   log(`✔ catálogo: ${LANGUAGES.length} idiomas, ${CATEGORIES.length} categorias, ${created} novos itens de conteúdo`);
+  await seedMissions(client, log);
 
   const now = new Date();
   const active = await client.query("select 1 from seasons where status = 'active'");
@@ -88,6 +91,39 @@ export async function seedCatalog(client: PoolClient, log = console.log) {
     ]);
     log("✔ temporada ativa criada");
   }
+}
+
+/** Missões iniciais. Idempotente: não sobrescreve missões já existentes (preserva edições). */
+export async function seedMissions(client: PoolClient, log = console.log) {
+  let created = 0;
+  for (const lang of LANGUAGES) {
+    const specs = MISSION_SPECS[lang.code as keyof typeof MISSION_SPECS];
+    if (!specs) continue;
+    for (const m of MISSIONS) {
+      const spec = specs[m.slug];
+      const errors = validateMissionSpec(spec, lang.code);
+      if (errors.length) throw new Error(`Missão ${lang.code}-${m.slug} inválida: ${errors.join("; ")}`);
+      const r = await client.query(
+        `insert into missions (id, language_code, region, level_code, title, sort_order, requires_mission, requires_lessons, spec, origin, source)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'ai_assisted',$10)
+         on conflict (id) do nothing`,
+        [
+          `${lang.code}-${m.slug}`,
+          lang.code,
+          m.region,
+          m.level,
+          m.title,
+          m.sortOrder,
+          m.requiresSlug ? `${lang.code}-${m.requiresSlug}` : null,
+          m.requiresLessons,
+          JSON.stringify(spec),
+          MISSION_SOURCE,
+        ],
+      );
+      created += r.rowCount ?? 0;
+    }
+  }
+  log(`✔ missões: ${created} novas`);
 }
 
 export async function seedAdmin(client: PoolClient, email: string, password: string, log = console.log) {

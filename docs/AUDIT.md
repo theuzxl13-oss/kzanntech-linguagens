@@ -179,3 +179,7 @@ Pendente (exige decisão/credenciais): provedor real, preços finais, impostos, 
 | Transparência ao aluno: aviso de itens em revisão na abertura da lição | `lessons.ts`, `lesson-player.tsx` | integração |
 
 Não feito (depende de pessoas/decisão): revisão do catálogo por professores ou nativos, gravações humanas, frases de exemplo, ampliação do conteúdo para lições com 1–2 itens. Nenhum conteúdo novo foi gerado nesta etapa para não aumentar o volume de material não revisado.
+
+## 8. RPG — missões de diálogo
+
+Diagnóstico, design e entrega: [RPG-DIAGNOSTICO.md](RPG-DIAGNOSTICO.md), [GAME-DESIGN.md](GAME-DESIGN.md), [RPG-ENTREGA.md](RPG-ENTREGA.md). Migração `0007_missions.sql`. Defeitos encontrados e corrigidos nesta etapa: fronteira de palavra `\b` sem Unicode nos padrões de erro (unit) e campo de resposta limpo durante o envio (E2E).

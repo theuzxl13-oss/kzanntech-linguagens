@@ -13,6 +13,7 @@ export const RETENTION = {
   staleLessonAttemptsDays: 2,
   abandonedCheckoutsDays: 30,
   usageCountersDays: 35,
+  staleMissionAttemptsDays: 30,
   // payment_events, invoices e subscriptions não são apagados aqui: são registros financeiros
   // (prazo de guarda é decisão jurídica/contábil — ver docs/BILLING.md).
 } as const;
@@ -36,5 +37,11 @@ export async function runMaintenance() {
     [RETENTION.abandonedCheckoutsDays],
   );
   await run("usage_counters", `delete from usage_counters where day < current_date - $1::int`, [RETENTION.usageCountersDays]);
+  // Tentativas de missão esquecidas: marcadas como abandonadas (as respostas continuam no histórico)
+  await run(
+    "mission_attempts_abandoned",
+    `update mission_attempts set status = 'abandoned', finished_at = now() where status = 'in_progress' and started_at < now() - make_interval(days => $1)`,
+    [RETENTION.staleMissionAttemptsDays],
+  );
   return counts;
 }

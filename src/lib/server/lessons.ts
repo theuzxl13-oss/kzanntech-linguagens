@@ -1,13 +1,12 @@
 import { z } from "zod";
-import { addDays, localDate } from "../domain/dates";
 import { LESSON_XP, buildPath, minLessonSeconds, type LessonData, type UnitForPath } from "../domain/lessons";
 import { lessonAllowed } from "../domain/entitlements";
-import { levelFromXp } from "../domain/scoring";
 import { PLAYABLE_STATUSES, getLanguage, getUserLanguageLevel } from "./content";
 import { query, queryOne, tx } from "./db";
 import { getEntitlements, planRequired } from "./entitlements";
 import { conflict, notFound } from "./errors";
 import { enforceRateLimit } from "./rate-limit";
+import { applyStudyDay, userToday } from "./study";
 
 export const completeLessonSchema = z.object({ accuracy: z.number().min(0).max(1) });
 
@@ -120,8 +119,7 @@ export async function completeLesson(userId: string, unitId: number, accuracy: n
     if (attempt.elapsed < minLessonSeconds(lesson.items.length)) {
       throw conflict("lesson_too_fast", "A lição foi concluída rápido demais. Faça os exercícios para registrar o progresso.");
     }
-    const tz = (await client.query<{ timezone: string }>(`select timezone from profiles where user_id = $1`, [userId])).rows[0]?.timezone ?? "America/Sao_Paulo";
-    const today = localDate(new Date(), tz);
+    const today = await userToday(client, userId);
     const prev = (await client.query(`select 1 from user_lessons where user_id = $1 and unit_id = $2`, [userId, unitId])).rowCount;
     await client.query(
       `insert into user_lessons (user_id, unit_id, best_accuracy) values ($1,$2,$3)
@@ -152,17 +150,7 @@ export async function completeLesson(userId: string, unitId: number, accuracy: n
     );
 
     // Estudar a lição conta para a sequência de dias
-    const stats = (await client.query(`select xp_total, current_streak, last_study_date from user_stats where user_id = $1 for update`, [userId])).rows[0];
-    const last = stats?.last_study_date
-      ? `${stats.last_study_date.getFullYear()}-${String(stats.last_study_date.getMonth() + 1).padStart(2, "0")}-${String(stats.last_study_date.getDate()).padStart(2, "0")}`
-      : null;
-    const streak = last === today ? stats.current_streak : last === addDays(today, -1) ? stats.current_streak + 1 : 1;
-    const xpTotal = (stats?.xp_total ?? 0) + xp;
-    await client.query(
-      `update user_stats set xp_total = $2, level = $3, current_streak = $4, longest_streak = greatest(longest_streak, $4), last_study_date = $5, updated_at = now()
-        where user_id = $1`,
-      [userId, xpTotal, levelFromXp(xpTotal), streak, today],
-    );
+    await applyStudyDay(client, userId, xp, today);
     await client.query(`update user_languages set last_studied_at = now() where user_id = $1 and language_code = $2`, [userId, lesson.language.code]);
     return { ok: true, xp, firstTime: !prev, nextUnitId: lesson.nextUnitId };
   });

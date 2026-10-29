@@ -10,6 +10,7 @@
 | Objetivo de estudo e metas | `profiles` | personalização | enquanto a conta existir |
 | Sessões de jogo, respostas, texto reconhecido da fala, XP, conquistas, revisão espaçada | `game_sessions`, `answers`, `xp_events`, `user_*` | serviço | enquanto a conta existir |
 | Áudio de voz | não armazenado (processado em memória) | avaliação de pronúncia | — |
+| Respostas digitadas nas missões de conversa | `mission_attempts`, `mission_turns` | avaliação, feedback e histórico | enquanto a conta existir (incluídas na exportação) |
 | IP e navegador das sessões de login | `auth_sessions` | segurança | até a expiração da sessão |
 | Chaves de limite de tentativas | `rate_limits` (HMAC do IP/e-mail) | antiabuso | 24 h |
 | Registros técnicos | `app_events` | diagnóstico | 90 dias |

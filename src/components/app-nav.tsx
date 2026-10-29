@@ -9,17 +9,17 @@ import { cn } from "./ui";
 const MAIN = [
   { href: "/painel", label: "Painel", icon: "🏠" },
   { href: "/aprender", label: "Aprender", icon: "📘" },
+  { href: "/missoes", label: "Missões", icon: "🧭" },
   { href: "/jogar", label: "Jogar", icon: "🎮" },
   { href: "/rankings", label: "Rankings", icon: "🏆" },
   { href: "/vocabulario", label: "Vocabulário", icon: "📖" },
-  { href: "/conquistas", label: "Conquistas", icon: "🏅" },
 ];
 const MOBILE = [
   { href: "/painel", label: "Painel", icon: "🏠" },
   { href: "/aprender", label: "Aprender", icon: "📘" },
+  { href: "/missoes", label: "Missões", icon: "🧭" },
   { href: "/jogar", label: "Jogar", icon: "🎮" },
   { href: "/rankings", label: "Rankings", icon: "🏆" },
-  { href: "/perfil", label: "Perfil", icon: "👤" },
 ];
 
 function isActive(path: string, href: string) {

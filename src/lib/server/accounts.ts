@@ -303,6 +303,13 @@ export async function exportAccountData(userId: string) {
       `select plan_code, provider, status, current_period_start, current_period_end, cancel_at_period_end, canceled_at, created_at from subscriptions where user_id = $1 order by created_at`,
       [userId],
     ),
+    missions: await query(
+      `select a.mission_id, a.status, a.started_at, a.finished_at, a.score, a.xp_awarded,
+              coalesce((select json_agg(json_build_object('step', t.step_idx + 1, 'try', t.try_no, 'answer', t.answer_text, 'passed', t.passed, 'at', t.created_at)
+                                order by t.step_idx, t.try_no) from mission_turns t where t.attempt_id = a.id), '[]') as answers
+         from mission_attempts a where a.user_id = $1 order by a.started_at`,
+      [userId],
+    ),
     invoices: await query(`select amount_cents, currency, status, period_start, period_end, created_at from invoices where user_id = $1 order by created_at`, [userId]),
     note: "Gravações de voz não são armazenadas pelo KeyLingo; apenas o texto reconhecido e a nota de cada tentativa. Dados de cartão ficam somente com o provedor de pagamento.",
   };

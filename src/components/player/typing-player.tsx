@@ -24,7 +24,7 @@ interface AnswerResult {
   isLast?: boolean;
 }
 
-const ACCENTS: Record<string, string[]> = {
+export const ACCENTS: Record<string, string[]> = {
   pt: ["á", "â", "ã", "à", "é", "ê", "í", "ó", "ô", "õ", "ú", "ç"],
   es: ["á", "é", "í", "ó", "ú", "ñ", "ü", "¿", "¡"],
   fr: ["é", "è", "ê", "à", "â", "ç", "ô", "û", "î", "ë", "ï", "ù", "œ"],

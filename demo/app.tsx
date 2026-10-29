@@ -889,6 +889,13 @@ function App() {
     else if (path === "/conquistas") body = <AchievementsPage s={s} />;
     else if (path === "/historico") body = <HistoryPage s={s} />;
     else if (path === "/perfil") body = <ProfilePage s={s} />;
+    else if (path === "/missoes")
+      body = (
+        <EmptyState icon="🧭" title="Missões de conversa" action={<ButtonLink href="/aprender">Ir para a trilha</ButtonLink>}>
+          Na versão completa, você conversa com personagens em situações reais (apresentar-se, pedir num café) e recebe feedback em cada etapa. As missões são
+          avaliadas e registradas no servidor, por isso não estão disponíveis nesta demonstração sem banco de dados.
+        </EmptyState>
+      );
     else body = <EmptyState icon="🔎" title="Página não encontrada" action={<ButtonLink href="/painel">Ir para o painel</ButtonLink>} />;
     page = <AppShell s={s}>{body}</AppShell>;
   }
