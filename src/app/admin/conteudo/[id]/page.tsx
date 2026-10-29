@@ -34,6 +34,7 @@ export default async function EditItem({ params }: { params: Promise<{ id: strin
           examplePt: item.example_pt ?? "",
           formats: item.formats,
           reviewStatus: item.review_status,
+          origin: item.origin,
           source: item.source,
           altTarget: item.altTarget,
           altPt: item.altPt,

@@ -66,6 +66,30 @@ export default async function AdminHome() {
           </table>
         </Card>
         <Card>
+          <h2 className="font-bold">Progresso editorial</h2>
+          <p className="mt-1 text-xs text-slate-500">Conteúdo redigido com apoio de IA não é considerado validado até a revisão humana (status &quot;Aprovado&quot; com revisor registrado).</p>
+          <table className="mt-3 w-full text-sm">
+            <thead className="text-left text-xs text-slate-500">
+              <tr>
+                <th className="py-1">Idioma</th>
+                <th className="py-1 text-right">IA revisado</th>
+                <th className="py-1 text-right">Escrito por pessoas</th>
+                <th className="py-1 text-right">Com exemplo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {m.editorial.map((e) => (
+                <tr key={e.language_code} className="border-t border-slate-100">
+                  <td className="py-1.5 font-semibold uppercase">{e.language_code}</td>
+                  <td className="py-1.5 text-right">{e.ai_approved}/{e.ai_total}</td>
+                  <td className="py-1.5 text-right">{e.human_total}</td>
+                  <td className="py-1.5 text-right">{e.with_example}/{e.total}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+        <Card>
           <h2 className="font-bold">Sessões por idioma (30 dias)</h2>
           <ul className="mt-3 space-y-1 text-sm">
             {m.popularLanguages.map((l) => (

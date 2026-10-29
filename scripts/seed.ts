@@ -52,8 +52,8 @@ export async function seedCatalog(client: PoolClient, log = console.log) {
         [lang.code, concept.level, concept.cat, `${catName.get(concept.cat)} · ${concept.level}`],
       );
       const item = await client.query<{ id: number }>(
-        `insert into content_items (language_code, unit_id, category_slug, level_code, kind, text, translation_pt, explanation, source)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+        `insert into content_items (language_code, unit_id, category_slug, level_code, kind, text, translation_pt, explanation, source, origin)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'ai_assisted')
          on conflict (language_code, lower(text)) do nothing
          returning id`,
         [lang.code, unit.rows[0].id, concept.cat, concept.level, concept.kind, tr.t, concept.pt, tr.note ?? null, CONTENT_SOURCE],
@@ -102,7 +102,7 @@ export async function seedAdmin(client: PoolClient, email: string, password: str
     `insert into users (email, password_hash, role, email_verified_at) values ($1,$2,'admin', now()) returning id`,
     [email, hash],
   );
-  await client.query(`insert into profiles (user_id, nickname, avatar, avatar_color) values ($1,'admin','owl','slate')`, [u.rows[0].id]);
+  await client.query(`insert into profiles (user_id, nickname, avatar, avatar_color, onboarded_at) values ($1,'admin','owl','slate', now())`, [u.rows[0].id]);
   await client.query(`insert into user_stats (user_id) values ($1)`, [u.rows[0].id]);
   log(`✔ administrador criado: ${email}`);
   return u.rows[0].id;
@@ -127,7 +127,7 @@ export async function seedDemo(client: PoolClient, log = console.log) {
     );
     const id = u.rows[0].id;
     await client.query(
-      `insert into profiles (user_id, nickname, avatar, avatar_color, current_language, is_demo) values ($1,$2,$3,'teal','en',true)`,
+      `insert into profiles (user_id, nickname, avatar, avatar_color, current_language, is_demo, onboarded_at) values ($1,$2,$3,'teal','en',true, now())`,
       [id, nick, avatars[i]],
     );
     await client.query(`insert into user_stats (user_id, xp_total, level) values ($1, $2, $3)`, [id, 150 * (i + 1), 1 + i]);

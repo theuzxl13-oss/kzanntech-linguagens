@@ -21,6 +21,7 @@ export default async function ProfilePage() {
           autoplayAudio: user.autoplayAudio,
           showInRankings: user.showInRankings,
           weeklyGoalXp: user.weeklyGoalXp,
+          dailyGoalXp: user.dailyGoalXp,
           voiceConsent: user.voiceConsent,
           emailVerified: user.emailVerified,
         }}

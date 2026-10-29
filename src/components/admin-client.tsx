@@ -66,6 +66,7 @@ export interface ItemFormValue {
   formats: string[];
   reviewStatus: string;
   source: string;
+  origin: string;
   altTarget: string[];
   altPt: string[];
 }
@@ -185,6 +186,13 @@ export function ItemEditor({
             </Field>
             <Field label="Fonte / responsável" htmlFor="src" hint="Ex.: dicionário consultado, professor revisor.">
               <Input id="src" required value={v.source} onChange={(e) => setV({ ...v, source: e.target.value })} />
+            </Field>
+            <Field label="Procedência" htmlFor="orig" hint="Conteúdo com apoio de IA só deve ser aprovado após revisão de professor ou falante nativo.">
+              <Select id="orig" value={v.origin} onChange={(e) => setV({ ...v, origin: e.target.value })}>
+                <option value="human">Escrito por pessoa</option>
+                <option value="ai_assisted">Redigido com apoio de IA</option>
+                <option value="imported">Importado de fonte externa</option>
+              </Select>
             </Field>
           </div>
           <div className="sm:col-span-2">

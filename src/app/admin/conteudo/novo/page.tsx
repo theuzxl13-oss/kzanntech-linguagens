@@ -26,6 +26,7 @@ export default async function NewItem() {
           examplePt: "",
           formats: ["translate", "write", "listen", "speak"],
           reviewStatus: "pending_review",
+          origin: "human",
           source: `Cadastrado por ${admin.nickname}`,
           altTarget: [],
           altPt: [],

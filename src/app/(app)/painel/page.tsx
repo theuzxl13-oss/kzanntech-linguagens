@@ -43,6 +43,15 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               {lang.due > 0 && ` · ${lang.due} para revisar`}
             </p>
           )}
+          {lang && (
+            <div className="mt-3 max-w-sm">
+              <p className="text-sm text-brand-100">
+                🎯 Meta de hoje: <strong className="text-white">{Math.min(d.daily.xp, d.daily.goal)}/{d.daily.goal} XP</strong>
+                {d.daily.xp >= d.daily.goal && " — cumprida!"}
+              </p>
+              <ProgressBar className="mt-1" value={Math.min(d.daily.xp, d.daily.goal)} max={d.daily.goal} label="Progresso da meta diária" color="green" />
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           {d.activeSession ? (

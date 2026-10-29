@@ -29,6 +29,8 @@ export interface LessonData {
   distractors: { pt: string[]; target: string[] };
   completed: boolean;
   nextUnitId: number | null;
+  /** Quantos itens ainda não passaram por revisão humana (aviso honesto ao aluno). */
+  unreviewedCount?: number;
 }
 
 /** "premium": lição fora do que o plano atual libera (ver domain/entitlements.ts). */

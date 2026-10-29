@@ -20,6 +20,9 @@ export interface CurrentUser {
   autoplayAudio: boolean;
   showInRankings: boolean;
   weeklyGoalXp: number;
+  dailyGoalXp: number;
+  learningGoal: string | null;
+  onboarded: boolean;
   voiceConsent: boolean;
   isDemo: boolean;
 }
@@ -55,6 +58,7 @@ const USER_COLUMNS = `
   p.nickname, p.avatar, p.avatar_color as "avatarColor", p.current_language as "currentLanguage",
   p.timezone, p.tts_rate::float as "ttsRate", p.autoplay_audio as "autoplayAudio",
   p.show_in_rankings as "showInRankings", p.weekly_goal_xp as "weeklyGoalXp",
+  p.daily_goal_xp as "dailyGoalXp", p.learning_goal as "learningGoal", (p.onboarded_at is not null) as "onboarded",
   (p.voice_consent_at is not null) as "voiceConsent", p.is_demo as "isDemo"`;
 
 export async function getUserById(id: string): Promise<CurrentUser | null> {

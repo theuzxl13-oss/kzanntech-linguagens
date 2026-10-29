@@ -52,8 +52,8 @@ export async function getLesson(userId: string, unitId: number): Promise<LessonD
   const idx = lessons.findIndex((l) => l.unitId === unitId);
   if (idx === -1 || lessons[idx].status === "locked") return null;
   if (lessons[idx].status === "premium") throw planRequired("Esta lição faz parte do plano Premium.", "lessons");
-  const items = await query<{ id: number; text: string; translation: string; explanation: string | null; kind: string; alt_target: string[]; alt_pt: string[] }>(
-    `select i.id, i.text, i.translation_pt as translation, i.explanation, i.kind,
+  const items = await query<{ id: number; text: string; translation: string; explanation: string | null; kind: string; review_status: string; alt_target: string[]; alt_pt: string[] }>(
+    `select i.id, i.text, i.translation_pt as translation, i.explanation, i.kind, i.review_status,
             coalesce((select array_agg(a.answer) from accepted_answers a where a.item_id = i.id and a.direction = 'to_target' and not a.is_primary), '{}') as alt_target,
             coalesce((select array_agg(a.answer) from accepted_answers a where a.item_id = i.id and a.direction = 'to_pt' and not a.is_primary), '{}') as alt_pt
        from content_items i
@@ -81,6 +81,7 @@ export async function getLesson(userId: string, unitId: number): Promise<LessonD
     distractors: { pt: others.map((o) => o.translation), target: others.map((o) => o.text) },
     completed: lessons[idx].status === "completed",
     nextUnitId: lessons[idx + 1]?.unitId ?? null,
+    unreviewedCount: items.filter((i) => i.review_status !== "approved").length,
   };
 }
 

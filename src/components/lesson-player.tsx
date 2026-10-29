@@ -157,6 +157,12 @@ export function LessonPlayer({ lesson, ttsRate }: { lesson: LessonData; ttsRate:
             </Alert>
           )}
           <p className="mt-4 text-xs text-slate-500">Errou? Sem problema: o exercício volta no final da lição para você tentar de novo.</p>
+          {!!lesson.unreviewedCount && (
+            <p className="mt-2 text-xs text-slate-500">
+              ℹ️ {lesson.unreviewedCount === lesson.items.length ? "O conteúdo desta lição" : `${lesson.unreviewedCount} de ${lesson.items.length} itens desta lição`} ainda
+              {lesson.unreviewedCount === lesson.items.length ? " está" : " estão"} em revisão por professores. Se encontrar algo estranho, avise a equipe.
+            </p>
+          )}
           {error && (
             <Alert tone="error" className="mt-4">
               {error}

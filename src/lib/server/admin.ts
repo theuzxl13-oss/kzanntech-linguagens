@@ -32,6 +32,16 @@ export async function getAdminMetrics() {
   const content = await query<{ language_code: string; review_status: string; n: number }>(
     `select language_code, review_status, count(*)::int as n from content_items group by 1, 2 order by 1, 2`,
   );
+  // Progresso editorial: quanto do conteúdo redigido com IA já passou por revisão humana
+  const editorial = await query<{ language_code: string; ai_total: number; ai_approved: number; human_total: number; with_example: number; total: number }>(
+    `select language_code,
+            count(*) filter (where origin = 'ai_assisted')::int as ai_total,
+            count(*) filter (where origin = 'ai_assisted' and review_status = 'approved')::int as ai_approved,
+            count(*) filter (where origin <> 'ai_assisted')::int as human_total,
+            count(*) filter (where example_text is not null)::int as with_example,
+            count(*)::int as total
+       from content_items where review_status <> 'archived' group by 1 order by 1`,
+  );
   const popularLanguages = await query<{ code: string; flag: string; name_pt: string; sessions: number }>(
     `select l.code, l.flag, l.name_pt, count(s.id)::int as sessions from languages l
        left join game_sessions s on s.language_code = l.code and s.started_at > now() - interval '30 days'
@@ -44,7 +54,7 @@ export async function getAdminMetrics() {
       group by ci.id having count(*) >= 5
       order by (count(*) filter (where si.result = 'wrong'))::float / count(*) desc limit 10`,
   );
-  return { ...m, content, popularLanguages, hardestItems };
+  return { ...m, content, editorial, popularLanguages, hardestItems };
 }
 
 // ---------------------------------------------------------------------------
@@ -67,6 +77,8 @@ export const itemSchema = z.object({
   formats: z.array(z.enum(FORMATS)).min(1),
   reviewStatus: z.enum(["draft", "pending_review", "approved", "archived"]).default("pending_review"),
   source: z.string().trim().min(2).max(300),
+  /** Procedência: "ai_assisted" marca conteúdo redigido com apoio de IA (exige revisão humana para ser aprovado). */
+  origin: z.enum(["ai_assisted", "human", "imported"]).default("human"),
   altTarget: answerList.default([]),
   altPt: answerList.default([]),
 });
@@ -124,6 +136,7 @@ export async function getItem(id: number) {
     formats: string[];
     review_status: string;
     source: string;
+    origin: string;
     reviewed_at: Date | null;
     reviewer: string | null;
   }>(
@@ -171,14 +184,15 @@ async function upsertItem(id: number | null, input: z.infer<typeof itemSchema>, 
       input.reviewStatus,
       input.source,
       reviewed ? actorId : null,
+      input.origin,
     ];
     let itemId: number;
     try {
       if (id == null) {
         const r = await client.query<{ id: number }>(
           `insert into content_items (language_code, unit_id, category_slug, level_code, kind, text, translation_pt, explanation, example_text,
-                                      example_pt, formats, review_status, source, reviewed_by, reviewed_at)
-           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, case when $14::uuid is null then null else now() end) returning id`,
+                                      example_pt, formats, review_status, source, reviewed_by, reviewed_at, origin)
+           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, case when $14::uuid is null then null else now() end, $15) returning id`,
           values,
         );
         itemId = r.rows[0].id;
@@ -187,8 +201,8 @@ async function upsertItem(id: number | null, input: z.infer<typeof itemSchema>, 
           `update content_items set language_code = $1, unit_id = $2, category_slug = $3, level_code = $4, kind = $5, text = $6,
                   translation_pt = $7, explanation = $8, example_text = $9, example_pt = $10, formats = $11, review_status = $12,
                   source = $13, reviewed_by = coalesce($14, reviewed_by),
-                  reviewed_at = case when $14::uuid is null then reviewed_at else now() end, updated_at = now()
-            where id = $15 returning id`,
+                  reviewed_at = case when $14::uuid is null then reviewed_at else now() end, origin = $15, updated_at = now()
+            where id = $16 returning id`,
           [...values, id],
         );
         if (!r.rows[0]) throw notFound("Item não encontrado.");

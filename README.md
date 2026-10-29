@@ -20,7 +20,7 @@ Para publicar: **Settings → Pages → Build and deployment → Source: GitHub 
 | Área | O que existe |
 |---|---|
 | Conta | Cadastro, login, logout, recuperação de senha, verificação de e-mail, troca de senha, perfil (apelido/avatar), exclusão de conta e exportação de dados (LGPD) |
-| Trilha de aprendizado (escola) | Lições em sequência para quem começa do zero: apresentação de cada palavra/frase (tradução, áudio, explicação), prática guiada em dificuldade crescente (reconhecer → escolher → escrever com dica), erros voltando até o domínio, dicas iniciais de cada idioma, desbloqueio progressivo (quem declara nível mais alto pode pular), XP e revisão espaçada dos itens aprendidos |
+| Trilha de aprendizado (escola) | Onboarding com objetivo e meta diária; lições em sequência para quem começa do zero: apresentação de cada palavra/frase (tradução, áudio, explicação), prática guiada em dificuldade crescente (reconhecer → escolher → escrever com dica), erros voltando até o domínio, dicas iniciais de cada idioma, desbloqueio progressivo (quem declara nível mais alto pode pular), XP e revisão espaçada dos itens aprendidos |
 | Idiomas | 5 idiomas, níveis CEFR (A1–C2), 10 categorias, unidades por tema, teste de nivelamento opcional; novos idiomas pelo admin sem alterar código |
 | Jogo de Digitar | Tradução (idioma → PT), escrita (PT → idioma), escuta e digitação; sessão rápida, desafios de 60 s / 3 min / 5 min, prática livre; pausa (sem cronômetro), novas tentativas, "Não sei", explicação do erro com diff, teclas de acentos, retomada após recarregar |
 | Jogo com Vozes | Ouvir referência, gravar, transcrição, nota, palavras destacadas, dicas, até 3 tentativas; consentimento do microfone; avaliação de pronúncia real no servidor (Azure) **ou** avaliação aproximada do navegador, claramente rotulada |
@@ -100,7 +100,7 @@ docs/                  Arquitetura, pontuação, implantação
 
 ## Testes
 
-Última execução: **80 unitários, 48 de integração (PostgreSQL 16) e 22 E2E (Chromium desktop + Pixel 7) — todos passando** no build Node.js (`next start`). Uma rodada anterior dos E2E também passou no runtime do Cloudflare Workers (`wrangler dev`).
+Última execução: **80 unitários, 52 de integração (PostgreSQL 16) e 22 E2E (Chromium desktop + Pixel 7) — todos passando** no build Node.js (`next start`). Uma rodada anterior dos E2E também passou no runtime do Cloudflare Workers (`wrangler dev`).
 
 Cobrem: cadastro/login/recuperação/verificação, escolha de idioma, os três formatos de digitação, voz (provedor simulado no servidor e reconhecimento do navegador simulado), microfone negado, cálculo de pontuação, XP decrescente, níveis, rankings individuais e geral, temporadas, segurança de rotas, CSRF, rate limit, envio duplicado, manipulação de pontuação, sessão interrompida, resposta vazia, áudio indisponível e responsividade.
 

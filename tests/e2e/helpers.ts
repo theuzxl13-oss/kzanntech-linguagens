@@ -35,7 +35,15 @@ export async function chooseLanguage(page: Page, name: string, level = "A1") {
   await page.getByRole("radio", { name: new RegExp(name) }).click();
   await page.getByRole("radio", { name: new RegExp(`^${level}`) }).click();
   await page.getByRole("button", { name: `Continuar com ${level}` }).click();
-  // Depois de escolher o idioma, o aluno vai para a trilha de aprendizado
+  // Na primeira vez, o aluno passa pelo onboarding (objetivo e meta diária) e depois vai para a trilha
+  // /aprender redireciona para /comecar no primeiro acesso: espera a página final carregar
+  const onboarding = page.getByRole("heading", { name: "Vamos montar seu plano de estudo" });
+  await expect(onboarding.or(page.getByRole("link", { name: /^Lição 1:/ }))).toBeVisible();
+  if (await onboarding.isVisible()) {
+    await page.getByRole("radio", { name: /Viajar/ }).click();
+    await page.getByRole("radio", { name: /Regular/ }).click();
+    await page.getByRole("button", { name: "Começar a primeira lição" }).click();
+  }
   await expect(page).toHaveURL(/\/aprender$/);
 }
 

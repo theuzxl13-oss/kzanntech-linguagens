@@ -16,6 +16,7 @@ interface Profile {
   autoplayAudio: boolean;
   showInRankings: boolean;
   weeklyGoalXp: number;
+  dailyGoalXp: number;
   voiceConsent: boolean;
   emailVerified: boolean;
 }
@@ -86,7 +87,7 @@ export function ProfileForms({ profile }: { profile: Profile }) {
   async function savePrefs(e: FormEvent) {
     e.preventDefault();
     await s2.run(
-      () => api("/api/profile", { method: "PATCH", body: { timezone: p.timezone, ttsRate: p.ttsRate, autoplayAudio: p.autoplayAudio, weeklyGoalXp: p.weeklyGoalXp } }),
+      () => api("/api/profile", { method: "PATCH", body: { timezone: p.timezone, ttsRate: p.ttsRate, autoplayAudio: p.autoplayAudio, weeklyGoalXp: p.weeklyGoalXp, dailyGoalXp: p.dailyGoalXp } }),
       "Preferências salvas.",
     );
   }
@@ -192,6 +193,9 @@ export function ProfileForms({ profile }: { profile: Profile }) {
           <Checkbox id="autoplay" checked={p.autoplayAudio} onChange={(e) => setP({ ...p, autoplayAudio: e.target.checked })} label="Tocar o áudio automaticamente nos exercícios de escuta e fala" />
           <Field label="Meta semanal de XP" htmlFor="goal" hint="Ao atingir a meta você ganha um bônus de XP.">
             <Input id="goal" type="number" min={50} max={5000} step={50} value={p.weeklyGoalXp} onChange={(e) => setP({ ...p, weeklyGoalXp: Number(e.target.value) })} />
+          </Field>
+          <Field label="Meta diária de XP" htmlFor="daily" hint="Mostrada no painel. Uma lição nova vale 25 XP.">
+            <Input id="daily" type="number" min={10} max={500} step={5} value={p.dailyGoalXp} onChange={(e) => setP({ ...p, dailyGoalXp: Number(e.target.value) })} />
           </Field>
           {s2.msg && <Alert tone={s2.msg.tone}>{s2.msg.text}</Alert>}
           <Button type="submit" disabled={s2.busy}>

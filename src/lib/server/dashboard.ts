@@ -185,6 +185,7 @@ export async function getDashboard(user: CurrentUser) {
     achievementTotals,
     challenges,
     weekly: { xp: weekXp, goal: user.weeklyGoalXp },
+    daily: { xp: historyMap.get(today) ?? 0, goal: user.dailyGoalXp },
     activeSession,
     standings,
     learning,

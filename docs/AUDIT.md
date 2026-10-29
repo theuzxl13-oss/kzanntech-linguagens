@@ -147,7 +147,7 @@ Gravidade considerando impacto e explorabilidade no contexto atual (aplicação 
 | R-05 | ✅ mitigado | servidor só busca áudio em `/audio/...` ou hosts de `AUDIO_ALLOWED_HOSTS`, sem seguir redirecionamentos | unit |
 | DEP-01 | ✅ corrigido | `wrangler` 4.155.0, `@opennextjs/cloudflare` 1.20.14, override `glob@^10.5.0` em `@node-minify/core` → `npm audit`: **0 vulnerabilidades**. Build OpenNext e preview `workerd` verificados | `npm audit`, `cf:build`, `wrangler dev` |
 | CI-01 | ⏳ P4 | — | — |
-| CONT-01 | ⏳ P3 (exige revisores humanos) | — | — |
+| CONT-01 | 🟡 parcial (P3) | procedência `origin` (IA/humano/importado), restrição no banco "aprovado exige revisor", painel de progresso editorial, aviso ao aluno quando a lição tem itens não revisados. **A revisão em si exige professores/nativos** | integração `onboarding-content.test.ts` |
 
 ## 6. P2 — Planos, assinaturas e controle de acesso
 
@@ -168,3 +168,14 @@ Implementado com provedor **sandbox** apenas (detalhes e regras em [BILLING.md](
 Multi-tenancy (escolas/empresas com várias contas): **não implementado de propósito**. Não há demanda demonstrada; o modelo atual (assinatura individual) não impede adicionar depois uma tabela `organizations` com assentos. Recomendação: decidir após validar o produto com usuários individuais.
 
 Pendente (exige decisão/credenciais): provedor real, preços finais, impostos, reembolso e política de arrependimento — ver BILLING.md.
+
+## 7. P3 — Onboarding, aprendizado e conteúdo
+
+| Mudança | Arquivos | Verificação |
+|---|---|---|
+| Onboarding no primeiro acesso: objetivo (viagem, trabalho, estudos, cultura, outro) e meta diária de XP (10/30/50/100), com opção de pular. Contas existentes não passam por ele (migração marca `onboarded_at`) | `0006_onboarding_content_origin.sql`, `/comecar`, `components/onboarding.tsx`, `api/profile/onboarding` | integração; E2E (todos os fluxos passam pelo onboarding via `chooseLanguage`) |
+| Meta do dia no painel (barra de progresso) e editável no perfil; meta semanal derivada (7×) | `dashboard.ts`, `painel/page.tsx`, `profile-forms.tsx` | integração |
+| Procedência do conteúdo e regra "IA não é validada automaticamente" | `content_items.origin`, check `content_items_approved_reviewed`, editor do admin | integração |
+| Transparência ao aluno: aviso de itens em revisão na abertura da lição | `lessons.ts`, `lesson-player.tsx` | integração |
+
+Não feito (depende de pessoas/decisão): revisão do catálogo por professores ou nativos, gravações humanas, frases de exemplo, ampliação do conteúdo para lições com 1–2 itens. Nenhum conteúdo novo foi gerado nesta etapa para não aumentar o volume de material não revisado.

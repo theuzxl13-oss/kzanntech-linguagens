@@ -37,6 +37,8 @@ export const deleteAccountSchema = z.object({
   password: z.string().min(1, "Informe sua senha.").max(128),
   confirm: z.literal("EXCLUIR", { error: "Digite EXCLUIR para confirmar." }),
 });
+export const LEARNING_GOALS = ["travel", "work", "study", "culture", "other"] as const;
+
 export const profileSchema = z
   .object({
     nickname,
@@ -54,8 +56,25 @@ export const profileSchema = z
     autoplayAudio: z.boolean(),
     showInRankings: z.boolean(),
     weeklyGoalXp: z.number().int().min(50).max(5000),
+    dailyGoalXp: z.number().int().min(10).max(500),
+    learningGoal: z.enum(LEARNING_GOALS),
   })
   .partial();
+
+/** Onboarding: objetivo e meta diária (pode ser pulado; os padrões continuam valendo). */
+export const onboardingSchema = z.object({
+  learningGoal: z.enum(LEARNING_GOALS).nullable(),
+  dailyGoalXp: z.number().int().min(10).max(500),
+});
+
+export async function completeOnboarding(userId: string, input: z.infer<typeof onboardingSchema>) {
+  await query(
+    `update profiles set learning_goal = $2, daily_goal_xp = $3, weekly_goal_xp = greatest(50, least(5000, $3 * 7)),
+            onboarded_at = coalesce(onboarded_at, now()), updated_at = now() where user_id = $1`,
+    [userId, input.learningGoal, input.dailyGoalXp],
+  );
+  return { ok: true };
+}
 
 type Meta = { ip?: string | null; userAgent?: string | null };
 
@@ -214,6 +233,8 @@ export async function updateProfile(userId: string, input: z.infer<typeof profil
     autoplayAudio: "autoplay_audio",
     showInRankings: "show_in_rankings",
     weeklyGoalXp: "weekly_goal_xp",
+    dailyGoalXp: "daily_goal_xp",
+    learningGoal: "learning_goal",
   };
   const sets: string[] = [];
   const values: unknown[] = [userId];
@@ -258,7 +279,7 @@ export async function deleteAccount(userId: string, input: z.infer<typeof delete
 export async function exportAccountData(userId: string) {
   const [account] = await query(
     `select u.email, u.created_at, u.email_verified_at, p.nickname, p.avatar, p.avatar_color, p.current_language, p.timezone,
-            p.tts_rate, p.show_in_rankings, p.weekly_goal_xp, p.voice_consent_at, p.terms_accepted_at
+            p.tts_rate, p.show_in_rankings, p.weekly_goal_xp, p.daily_goal_xp, p.learning_goal, p.voice_consent_at, p.terms_accepted_at
        from users u join profiles p on p.user_id = u.id where u.id = $1`,
     [userId],
   );
