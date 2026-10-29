@@ -98,6 +98,7 @@ docs/                  Arquitetura, pontuação, implantação
 - [Planos, assinaturas e cobrança](docs/BILLING.md)
 - [Auditoria técnica e correções](docs/AUDIT.md)
 - [Operação, monitoramento e CI](docs/OPERATIONS.md) · [Privacidade e retenção](docs/PRIVACY.md)
+- [Relatório final da evolução para SaaS](docs/RELATORIO-FINAL.md)
 
 ## Testes
 
